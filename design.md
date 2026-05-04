@@ -129,3 +129,17 @@ flowchart TD
    HomeFull -.->|State Notes| note1
    RewardRedemption -.->|Reward Notes| note2
 ```
+
+### 3.2 Technical Stack
+
+| Component | Technology | Version | Rationale |
+|-----------|------------|---------|-----------|
+| Frontend Framework | React | TBD | Latest stable with full TypeScript support |
+| Routing | React Router | TBD | Declarative routing with type safety |
+| State Management | Context + useReducer | TBD | Global state for points/sessions without external dependencies |
+| Build Tool | Vite | TBD | Fast HMR, optimized for React |
+| CSS Framework | Tailwind CSS | TBD | Utility-first, consistent styling |
+| Language | TypeScript | TBD | Type safety, better IDE support |
+| Testing | Vitest | TBD | Fast, ESM-first, React integration |
+| Deployment | GitHub Pages | - | Static hosting, free |
+
