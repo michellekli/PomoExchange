@@ -111,6 +111,11 @@ flowchart TD
    HomeFull -.->|View Reward History| RewardHistory
    HomeFull -.->|View Session History| SessionHistory
 
+   %% Session History
+   SessionHistory[Session History<br/>List completed sessions]:::homeFull
+   SessionHistory -->|View Details| SessionDetail
+   SessionDetail[Session Detail<br/>Show duration & points earned]:::homeFull
+
    %% State Notes
    note1[<b>State Notes:</b><br/>- All state lost on page close<br/>- Points capped at MAX_SAFE_INTEGER<br/>- Points deducted on redemption<br/>- No backend storage<br/>- Client-side only]:::homeFull
    note2[<b>Reward Notes:</b><br/>- Rewards require points to redeem<br/>- Points deducted upon confirmation<br/>- Reward history updated after redemption]:::homeFull
