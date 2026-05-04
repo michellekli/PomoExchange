@@ -58,49 +58,64 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
 
 ```mermaid
 flowchart TD
-    %% Define styles
-    classDef welcome fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef homeMinimal fill:#f5f5f5,stroke:#424242,stroke-width:2px
-    classDef timer fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef homeFull fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    classDef action fill:#ffeb3b,stroke:#f9a825,stroke-width:2px
+   %% Define styles
+   classDef welcome fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+   classDef homeMinimal fill:#f5f5f5,stroke:#424242,stroke-width:2px
+   classDef timer fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+   classDef homeFull fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+   classDef action fill:#ffeb3b,stroke:#f9a825,stroke-width:2px
 
-    %% Welcome Dialog
-    Welcome[Welcome Dialog<br/>Explain time→points→rewards flow]:::welcome
-    Welcome -->|Close| HomeMinimal
+   %% Welcome Dialog
+   Welcome[Welcome Dialog<br/>Explain time→points→rewards flow]:::welcome
+   Welcome -->|Close| HomeMinimal
 
-    %% Home Screen - Minimal
-    HomeMinimal[Home Screen - Minimal<br/>Select duration & Points/Minute]:::homeMinimal
-    HomeMinimal -->|Start Focus Session| Timer
+   %% Home Screen - Minimal
+   HomeMinimal[Home Screen - Minimal<br/>Select duration & Points/Minute]:::homeMinimal
+   HomeMinimal -->|Start Focus Session| Timer
 
-    %% Timer Screen
-    Timer[Timer Screen<br/>View time remaining]:::timer
-    Timer -->|End Early| EndEarly
-    Timer -->|Time Complete| Complete
+   %% Timer Screen
+   Timer[Timer Screen<br/>View time remaining]:::timer
+   Timer -->|End Early| EndEarly
+   Timer -->|Time Complete| Complete
 
-    %% End Early Path
-    EndEarly[End Early<br/>Calculate points]:::action
-    EndEarly -->|Points Earned| HomeFull
+   %% End Early Path
+   EndEarly[End Early<br/>Calculate points]:::action
+   EndEarly -->|Points Earned| HomeFull
 
-    %% Complete Path
-    Complete[Focus Complete<br/>Show time elapsed]:::timer
-    Complete -->|Finish & Earn Points| EarnPoints
+   %% Complete Path
+   Complete[Focus Complete<br/>Show time elapsed]:::timer
+   Complete -->|Finish & Earn Points| EarnPoints
 
-    %% Earn Points Path
-    EarnPoints[Calculate Points<br/>Earned]:::action
-    EarnPoints -->|Points Earned| HomeFull
+   %% Earn Points Path
+   EarnPoints[Calculate Points<br/>Earned]:::action
+   EarnPoints -->|Points Earned| HomeFull
 
-    %% Home Screen - Full
-    HomeFull[Home Screen - Full<br/>View Points & Rewards]:::homeFull
-    HomeFull -->|Start Focus Session| Timer
+   %% Home Screen - Full
+   HomeFull[Home Screen - Full<br/>View Points & Rewards]:::homeFull
+   HomeFull -->|Start Focus Session| Timer
+   HomeFull -->|View Available Rewards| RewardSelection
 
-    %% Reward History
-    HomeFull -.->|View Reward History| RewardHistory
-    HomeFull -.->|View Session History| SessionHistory
+   %% Reward Selection Path
+   RewardSelection[Select Reward from Catalog]:::action
+   RewardSelection -->|Browse Catalog| RewardCatalog
 
-    %% State Notes
-    note1[<b>Important Notes:</b><br/>- All state lost on page close<br/>- Points capped at MAX_SAFE_INTEGER<br/>- No backend storage<br/>- Client-side only]:::homeFull
+   %% Reward Catalog
+   RewardCatalog[Reward Catalog<br/>Browse Available Rewards]:::homeFull
+   RewardCatalog -->|Choose Reward| RewardRedemption
 
-    %% Connect notes
-    HomeFull -.->|State Lost| note1
+   %% Reward Redemption Path
+   RewardRedemption[Reward Redemption<br/>Confirm Points Deduction]:::action
+   RewardRedemption -->|Points Deducted| HomeFull
+
+   %% Reward History
+   HomeFull -.->|View Reward History| RewardHistory
+   HomeFull -.->|View Session History| SessionHistory
+
+   %% State Notes
+   note1[<b>State Notes:</b><br/>- All state lost on page close<br/>- Points capped at MAX_SAFE_INTEGER<br/>- Points deducted on redemption<br/>- No backend storage<br/>- Client-side only]:::homeFull
+   note2[<b>Reward Notes:</b><br/>- Rewards require points to redeem<br/>- Points deducted upon confirmation<br/>- Reward history updated after redemption]:::homeFull
+
+   %% Connect notes
+   HomeFull -.->|State Notes| note1
+   RewardRedemption -.->|Reward Notes| note2
 ```
