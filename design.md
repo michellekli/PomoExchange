@@ -105,7 +105,12 @@ flowchart TD
 
    %% Reward Redemption Path
    RewardRedemption[Reward Redemption<br/>Confirm Points Deduction]:::action
-   RewardRedemption -->|Points Deducted| HomeFull
+   RewardRedemption -->|Confirm Points Deduction| RewardConfirmation
+
+   %% Reward Confirmation Path
+   RewardConfirmation[Reward Confirmation<br/>Show points deducted]:::action
+   RewardConfirmation -->|Points Insufficient| ErrorScreen
+   RewardConfirmation -->|Points Deducted| HomeFull
 
    %% Reward History
    HomeFull -.->|View Reward History| RewardHistory
