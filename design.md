@@ -18,7 +18,8 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
 2. Focus Session Management
    - User can begin and end a focus session
    - User can set the length of time for the focus session
-   - User can end a focus session early to gain points
+   - User can end a focus session early and still gain points
+   - User can wait until the focus session is complete to end it and gain points
 
 3. Points Calculation
    - User receives points when ending a focus session
