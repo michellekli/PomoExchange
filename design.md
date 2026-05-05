@@ -107,15 +107,20 @@ flowchart TD
    %% Reward Catalog
    RewardCatalog[Reward Catalog<br/>Browse Available Rewards]:::homeFull
    RewardCatalog -->|Choose Reward| RewardRedemption
+   RewardCatalog -->|Back to Home| HomeFull
 
    %% Reward Redemption Path
-   RewardRedemption[Reward Redemption<br/>Confirm Points Deduction]:::action
+   RewardRedemption[Reward Redemption<br/>Proceed to Confirmation]:::action
    RewardRedemption -->|Confirm Points Deduction| RewardConfirmation
 
    %% Reward Confirmation Path
    RewardConfirmation[Reward Confirmation<br/>Show points to deduct]:::action
    RewardConfirmation -->|Points Insufficient| ErrorScreen
-   RewardConfirmation -->|Points Deducted| HomeFull
+   RewardConfirmation -->|Deduct Points| HomeFull
+
+   %% Error Screen Path
+   ErrorScreen[Error Screen<br/>Show insufficient points]:::action
+   ErrorScreen -->|Return to Catalog| RewardCatalog
 
    %% Reward History
    HomeFull -.->|View Reward History| RewardHistory
@@ -129,6 +134,10 @@ flowchart TD
    FocusHistory -->|View Details| FocusDetail
    FocusDetail[Focus Detail<br/>Show duration & points earned]:::homeFull
 
+```
+
+```mermaid
+flowchart TD
    %% State Notes
    note1[<b>State Notes:</b><br/>- All state lost on page close<br/>- Points capped at MAX_SAFE_INTEGER<br/>- Points deducted on redemption<br/>- No backend storage<br/>- Client-side only]:::homeFull
    note2[<b>Reward Notes:</b><br/>- Rewards require points to redeem<br/>- Points deducted upon confirmation<br/>- Reward history updated after redemption]:::homeFull
@@ -140,6 +149,7 @@ flowchart TD
    RewardRedemption -.->|Reward Notes| note2
    RewardHistory -.->|Reward History Notes| note3
    FocusHistory -.->|Focus History Notes| note4
+
 ```
 
 ### 3.2 Technical Stack
