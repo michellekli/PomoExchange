@@ -158,3 +158,9 @@ flowchart TD
 - Session State: Timer state, current focus duration, points earned, user settings (points/minute), total points (capped at MAX_SAFE_INTEGER), reward history, focus session history
 - All state is lost on page close
 - No backend storage
+
+### 3.4 Design Constraints
+- Client-Only Application: No backend, no API calls
+- No Authentication: No user accounts, no login required
+- No Data Persistence: All state is lost on page close/reload
+- No Server-Side Validation: All validation is client-side
