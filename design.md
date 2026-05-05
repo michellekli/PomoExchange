@@ -12,37 +12,40 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
 
 ### 2.1 Functional Requirements
 
-1. Session Management
+1. Onboarding
+   - Explanation of app is the first thing user sees
+
+2. Focus Session Management
    - User can begin and end a focus session
    - User can set the length of time for the focus session
    - User can end a focus session early to gain points
 
-2. Points Calculation
+3. Points Calculation
    - User receives points when ending a focus session
    - Points formula: `points = time_elapsed_minutes * points_per_minute`
    - User can set the number of points earned per minute elapsed
    - Points are capped at max numeric value supported
 
-3. Reward System
+4. Reward System
+   - User can view available rewards
    - User can redeem a reward using earned points
-   - Reward history is visible on Home Screen after first reward redepmtion
-   - Session history is viewable through Home Screen after first reward redemption
+   - Reward history for the current session is visible on Home Screen after first reward redemption
+   - Focus session history for the current session is viewable through Home Screen after first reward redemption
 
 ### 2.2 Non-Functional Requirements
 
 1. User Experience
    - UI should be minimal to prevent distractions during focus session
    - Animations should guide user through key actions
-   - Timer should display time remaining during session
+   - Timer should display time remaining during focus session
 
 2. Data Persistence
    - All state is lost if user loses connection or closes web app
-   - Points and settings persist across sessions
    - Points overflow is handled by capping at max numeric value
 
 3. Motivation & Engagement
    - Reward history motivates users by visually displaying redeemed rewards
-   - Session history provides transparency into user progress
+   - Focus session history provides transparency into user progress
    - Points system creates tangible incentive for focus
 
 ### 2.3 Goals
@@ -114,20 +117,27 @@ flowchart TD
 
    %% Reward History
    HomeFull -.->|View Reward History| RewardHistory
-   HomeFull -.->|View Session History| SessionHistory
+   HomeFull -.->|View Focus History| FocusHistory
 
-   %% Session History
-   SessionHistory[Session History<br/>List completed sessions]:::homeFull
-   SessionHistory -->|View Details| SessionDetail
-   SessionDetail[Session Detail<br/>Show duration & points earned]:::homeFull
+   %% Reward History
+   RewardHistory[Reward History<br/>Display number of redeemed rewards]:::homeFull
+
+   %% Focus History
+   FocusHistory[Focus History<br/>List completed focus sessions]:::homeFull
+   FocusHistory -->|View Details| FocusDetail
+   FocusDetail[Focus Detail<br/>Show duration & points earned]:::homeFull
 
    %% State Notes
    note1[<b>State Notes:</b><br/>- All state lost on page close<br/>- Points capped at MAX_SAFE_INTEGER<br/>- Points deducted on redemption<br/>- No backend storage<br/>- Client-side only]:::homeFull
    note2[<b>Reward Notes:</b><br/>- Rewards require points to redeem<br/>- Points deducted upon confirmation<br/>- Reward history updated after redemption]:::homeFull
+   note3[<b>Reward History Notes:</b><br/>- Reward history for only the current session]:::homeFull
+   note4[<b>Focus History Notes:</b><br/>- Focus session history for only the current session]:::homeFull
 
    %% Connect notes
    HomeFull -.->|State Notes| note1
    RewardRedemption -.->|Reward Notes| note2
+   RewardHistory -.->|Reward History Notes| note3
+   FocusHistory -.->|Focus History Notes| note4
 ```
 
 ### 3.2 Technical Stack
@@ -136,7 +146,7 @@ flowchart TD
 |-----------|------------|---------|-----------|
 | Frontend Framework | React | TBD | Latest stable with full TypeScript support |
 | Routing | React Router | TBD | Declarative routing with type safety |
-| State Management | Context + useReducer | TBD | Global state for points/sessions without external dependencies |
+| State Management | Context + useReducer | TBD | Global state for points/focus sessions without external dependencies |
 | Build Tool | Vite | TBD | Fast HMR, optimized for React |
 | CSS Framework | Tailwind CSS | TBD | Utility-first, consistent styling |
 | Language | TypeScript | TBD | Type safety, better IDE support |
