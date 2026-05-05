@@ -192,3 +192,179 @@ flowchart TD
 - No Authentication: No user accounts, no login required
 - No Server-Side Validation: All validation is client-side
 
+## 4. Detailed Design
+
+### 4.1 Component Hierarchy
+
+```
+App
+├── WelcomeDialog
+├── HomeScreen
+│   ├── SessionConfig (duration input, points/minute selector)
+│   ├── PointsDisplay
+│   ├── FocusHistorySection
+│   │   ├── FocusHistoryHeader (expand/collapse toggle)
+│   │   ├── FocusHistoryList (collapsible)
+│   │   │   └── FocusSessionItem
+│   │   └── FocusSessionItem
+│   ├── RewardHistoryBar
+│   │   └── RewardShape
+│   └── RewardCatalog
+│       ├── RewardTierCard (Small, Medium, Large)
+│       └── RewardConfirmationModal
+└── TimerScreen
+    ├── TimerDisplay
+    └── EndSessionButton
+```
+
+### 4.2 Component Responsibilities
+
+| Component | Responsibility |
+|-----------|---------------|
+| `WelcomeDialog` | Shown once on first load; explains time → points → rewards flow |
+| `SessionConfig` | Duration input (minutes) and points/minute slider/input; disabled during active session |
+| `PointsDisplay` | Shows current point balance; hidden until first session completed |
+| `FocusHistorySection` | Expandable section for focus history; collapsed by default |
+| `FocusHistoryHeader` | Shows section title and expand/collapse toggle |
+| `FocusHistoryList` | Renders list of completed focus sessions for current app session; hidden when collapsed |
+| `FocusSessionItem` | Single session entry showing duration and points earned |
+| `RewardHistoryBar` | Inline row of tier-differentiated shapes; hidden until first redemption |
+| `RewardShape` | Triangle/square/pentagon; hover/tap reveals timestamp, tier, cost |
+| `RewardCatalog` | Lists three tiers; disables unaffordable rewards |
+| `RewardTierCard` | Displays tier name, duration, cost, example activities |
+| `RewardConfirmationModal` | Shows cost and asks for confirmation before deducting points |
+| `TimerScreen` | Displays countdown timer; handles session end |
+| `TimerDisplay` | Large time-remaining display with visual progress indicator |
+| `EndSessionButton` | Ends session early or at completion; triggers points calculation |
+
+### 4.3 Data Types
+
+```typescript
+type RewardTier = 'small' | 'medium' | 'large';
+
+interface FocusSession {
+  id: string;
+  durationMinutes: number;
+  pointsEarned: number;
+  endedAt: Date;
+}
+
+interface RewardRedemption {
+  id: string;
+  tier: RewardTier;
+  durationMinutes: number;
+  pointsCost: number;
+  redeemedAt: Date;
+}
+
+interface AppState {
+  pointsBalance: number;
+  focusSessions: FocusSession[];
+  rewardHistory: RewardRedemption[];
+  isSessionActive: boolean;
+  sessionStartTime: Date | null;
+  sessionConfig: {
+    durationMinutes: number;
+    pointsPerMinute: number;
+  };
+  welcomeDismissed: boolean;
+}
+
+const POINTS_CAP = 10000;
+const DEFAULT_POINTS_PER_MINUTE = 0.05;
+
+const REWARD_TIERS = {
+  small:  { duration: 5,  cost: 1, suggestions: ['Stretching', 'Get a snack', 'Walk around'] },
+  medium: { duration: 10, cost: 2, suggestions: ['Walk outside', 'Quick workout', 'YouTube video'] },
+  large:  { duration: 15, cost: 3, suggestions: ['Watch some TV', 'Quick nap'] },
+} as const;
+```
+
+### 4.4 State Management
+
+**Context structure:**
+
+```typescript
+interface AppStateContextValue {
+  state: AppState;
+  dispatch: React.Dispatch<AppAction>;
+}
+
+type AppAction =
+  | { type: 'DISMISS_WELCOME' }
+  | { type: 'SET_DURATION'; payload: number }
+  | { type: 'SET_POINTS_PER_MINUTE'; payload: number }
+  | { type: 'START_SESSION' }
+  | { type: 'END_SESSION'; payload: { elapsedMinutes: number } }
+  | { type: 'REDEEM_REWARD'; payload: { tier: RewardTier } };
+```
+
+**Initial state:**
+
+```typescript
+const initialState: AppState = {
+  pointsBalance: 0,
+  focusSessions: [],
+  rewardHistory: [],
+  isSessionActive: false,
+  sessionStartTime: null,
+  sessionConfig: {
+    durationMinutes: 25,
+    pointsPerMinute: 0.05,
+  },
+  welcomeDismissed: false,
+};
+```
+
+**Reducer cases:**
+- `DISMISS_WELCOME`: Sets `welcomeDismissed: true`
+- `SET_DURATION`: Updates `sessionConfig.durationMinutes`; ignored if `isSessionActive: true`
+- `SET_POINTS_PER_MINUTE`: Updates `sessionConfig.pointsPerMinute`; ignored if `isSessionActive: true`
+- `START_SESSION`: Sets `isSessionActive: true`, `sessionStartTime: new Date()`
+- `END_SESSION`: Calculates points from `sessionStartTime`, caps at 10,000, appends to `focusSessions`, sets `isSessionActive: false`, `sessionStartTime: null`
+- `REDEEM_REWARD`: Checks affordability, deducts points, appends to `rewardHistory`
+
+### 4.5 Screen Layouts
+
+**Home Screen (Base):**
+- Centered vertically
+- Duration input field
+- Points/minute input
+- "Start Focus Session" button
+
+**Home Screen (Extended):**
+- Points balance at top
+- Duration and points/minute config (same as Base)
+- "Start Focus Session" button
+- Reward history bar (conditional, after first redemption)
+- Reward catalog section (responsive: 3-column grid on desktop, single column on mobile; suggestions shown on tap on mobile)
+- Focus history list at bottom (collapsible, collapsed by default)
+
+**Timer Screen:**
+- Full-screen layout
+- Large countdown timer (MM:SS)
+- Visual progress ring or bar
+- "End Session" button
+
+### 4.6 Key Algorithms
+
+**Points calculation:**
+```
+pointsEarned = min(elapsedMinutes * state.sessionConfig.pointsPerMinute, POINTS_CAP - state.pointsBalance)
+```
+- No bonus for completing full duration
+- No penalty for ending early
+- Capped at 10,000 total points
+
+**Reward affordability check:**
+```
+isAffordable = state.pointsBalance >= REWARD_TIERS[tier].cost
+```
+- Unaffordable rewards are grayed out with "Need X more points" message
+
+### 4.7 Routing
+
+| Route | Component | Notes |
+|-------|-----------|-------|
+| `/` | HomeScreen | Default route; shows WelcomeDialog if first visit |
+| `/timer` | TimerScreen | Active focus session only; accessible only when `isSessionActive` |
