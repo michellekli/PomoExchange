@@ -294,7 +294,7 @@ type AppAction =
   | { type: 'SET_DURATION'; payload: number }
   | { type: 'SET_POINTS_PER_MINUTE'; payload: number }
   | { type: 'START_SESSION' }
-  | { type: 'END_SESSION'; payload: { elapsedMinutes: number } }
+  | { type: 'END_SESSION' }
   | { type: 'REDEEM_REWARD'; payload: { tier: RewardTier } };
 ```
 
