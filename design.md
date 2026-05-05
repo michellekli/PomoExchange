@@ -28,7 +28,12 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
    - Points are capped at MAX_SAFE_INTEGER
 
 4. Reward System
-   - User can view available rewards
+   - Three predefined reward tiers:
+     - Small: 5 minutes (suggestions: stretching, getting a snack, getting up and walking around)
+     - Medium: 10 minutes (suggestions: walking outside, a quick workout, a short YouTube video)
+     - Large: 15 minutes (suggestions: watching half a TV show, a quick nap)
+   - Each tier displays suggested duration and example activities
+   - User self-selects how to reward themselves within the chosen tier
    - User can redeem a reward using earned points
    - User can't redeem the selected reward if they don't have enough points
    - Focus session history for the current app session is viewable through Home Screen after first focus session
@@ -105,7 +110,7 @@ flowchart TD
    RewardSelection -->|Browse Catalog| RewardCatalog
 
    %% Reward Catalog
-   RewardCatalog[Reward Catalog<br/>Browse Available Rewards]:::homeFull
+   RewardCatalog[Reward Catalog<br/>Small ~5 min: stretch, snack, walk<br/>Medium ~10 min: longer walk, workout, YouTube<br/>Large ~15 min: TV show, nap]:::homeFull
    RewardCatalog -->|Choose Reward| RewardRedemption
    RewardCatalog -->|Back to Home| HomeFull
 
