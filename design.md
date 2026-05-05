@@ -150,12 +150,10 @@ flowchart TD
    HomeExtended -.->|View Focus History| FocusHistory
 
    %% Reward History
-   RewardHistory[Reward History<br/>Tier-differentiated shapes (Small=triangle, Medium=square, Large=pentagon); hover/touch reveals redemption time, tier, cost]:::homeExtended
+   RewardHistory[Reward History<br/>Tier-differentiated shapes: Small=triangle, Medium=square, Large=pentagon; hover/touch reveals redemption time, tier, cost]:::homeExtended
 
    %% Focus History
-   FocusHistory[Focus History<br/>List completed focus sessions]:::homeExtended
-   FocusHistory -->|View Details| FocusDetail
-   FocusDetail[Focus Detail<br/>Show duration & points earned]:::homeExtended
+   FocusHistory[Focus History<br/>List completed focus sessions<br/>Inline details per session]:::homeExtended
 
 ```
 
