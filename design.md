@@ -4,7 +4,7 @@
 
 PomoExchange addresses the challenge of sustaining focus in a world with increasing distractions. Existing time management tools focus on tracking time blocks, but few provide immediate, tangible rewards for maintaining focus. This creates a gap between the traditional Pomodoro technique (25-minute focus + 5-minute break) and user motivation.
 
-Unlike passive time-tracking apps, PomoExchange replaces the passive break with active engagement to turn break time into a reward that requires focus to earn.
+Unlike passive time-tracking apps, PomoExchange replaces the passive break with earned rewards to turn break time into something users must focus to unlock.
 
 PomoExchange gamifies time blocking by replacing the traditional break with point-earned rewards. Users stay focused to earn points, which they can redeem for break activities like quick walks or stretches.
 
@@ -65,7 +65,7 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
 1. Gamify time blocking by replacing passive breaks with point-earned rewards
 2. Create immediate, tangible rewards for maintaining focus
 3. Bridge the gap between traditional Pomodoro technique and user motivation
-4. Encourage sustained focus through active engagement during break time
+4. Encourage sustained focus through tangible, self-selected reward incentives
 
 ## 3. Architecture Overview
 
