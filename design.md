@@ -4,11 +4,11 @@
 
 PomoExchange addresses the challenge of sustaining focus in a world with increasing distractions. Existing time management tools focus on tracking time blocks, but few provide immediate, tangible rewards for maintaining focus. This creates a gap between the traditional Pomodoro technique (25-minute focus + 5-minute break) and user motivation.
 
-Unlike passive time-tracking apps, PomoExchange replaces the passive break with earned rewards to turn break time into something users must focus to unlock.
+Unlike passive time-tracking apps, PomoExchange replaces the passive break with earned rewards to turn passive breaks into earned reward activities.
 
-PomoExchange gamifies time blocking by replacing the traditional break with point-earned rewards. Users stay focused to earn points, which they can redeem for break activities like quick walks or stretches.
+PomoExchange gamifies time blocking by replacing the traditional break with point-earned rewards. Users stay focused to earn points, which they can redeem for reward activities like quick walks or stretches.
 
-PomoExchange intentionally defaults to a tighter focus-to-break ratio than traditional Pomodoro (4:1 vs 3.33:1), encouraging sustained focus beyond the standard 25-minute blocks. Rather than mandating breaks, users choose when and how to spend their earned break time.
+PomoExchange intentionally defaults to a tighter focus-to-reward ratio than traditional Pomodoro (4:1 vs 3.33:1), encouraging sustained focus beyond the standard 25-minute blocks. Rather than mandating breaks, users choose when and how to spend their earned reward time.
 
 ## 2. Requirements & Goals
 
@@ -50,9 +50,9 @@ PomoExchange intentionally defaults to a tighter focus-to-break ratio than tradi
    - Focus session history for the current app session is viewable through Home Screen after first focus session
    - Reward history for the current app session is visible on Home Screen after first reward redemption
 
-5. Intentionally default to a 4:1 focus-to-break ratio to encourage sustained focus beyond traditional Pomodoro. Comparisons are normalized to 100 minutes of focus (equivalent to 4 traditional Pomodoros):
+5. Intentionally default to a 4:1 focus-to-reward ratio to encourage sustained focus beyond traditional Pomodoro. Comparisons are normalized to 100 minutes of focus (equivalent to 4 traditional Pomodoros):
    - Traditional Pomodoro: 4 × 25 min = 100 min focus. Breaks = 3 × 5 min short + 1 long break (15–30 min) = 30–45 min total break → ratio 3.33:1 to 2.22:1
-   - PomoExchange: 100 min focus × 0.05 pts/min = 5 points = 25 min total earned break → ratio 4:1
+   - PomoExchange: 100 min focus × 0.05 pts/min = 5 points = 25 min total reward time → ratio 4:1
    
    | Approach | Focus | Break | Ratio |
    |----------|-------|-------|-------|
@@ -176,7 +176,7 @@ flowchart TD
 
 ### 3.3 State Management Strategy
 - Client-Only Application: All state is managed client-side without server storage
-- Session State: User-configured minutes for focus session, minutes spent focusing, points balance, points earned per minute (persists within the current app session), reward history (for current app session only), focus session history (for current app session only)
+- Session State: User-configured minutes for focus session, minutes spent focusing (for current focus session), points balance, points earned per minute (persists within the current app session), reward history (for current app session only), focus session history (for current app session only)
 - All state is lost on page close/reload
 - No backend storage
 
