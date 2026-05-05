@@ -29,8 +29,8 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
 4. Reward System
    - User can view available rewards
    - User can redeem a reward using earned points
-   - Reward history for the current session is visible on Home Screen after first reward redemption
-   - Focus session history for the current session is viewable through Home Screen after first reward redemption
+   - Reward history for the current app session is visible on Home Screen after first reward redemption
+   - Focus session history for the current app session is viewable through Home Screen after first reward redemption
 
 ### 2.2 Non-Functional Requirements
 
@@ -130,8 +130,8 @@ flowchart TD
    %% State Notes
    note1[<b>State Notes:</b><br/>- All state lost on page close<br/>- Points capped at MAX_SAFE_INTEGER<br/>- Points deducted on redemption<br/>- No backend storage<br/>- Client-side only]:::homeFull
    note2[<b>Reward Notes:</b><br/>- Rewards require points to redeem<br/>- Points deducted upon confirmation<br/>- Reward history updated after redemption]:::homeFull
-   note3[<b>Reward History Notes:</b><br/>- Reward history for only the current session]:::homeFull
-   note4[<b>Focus History Notes:</b><br/>- Focus session history for only the current session]:::homeFull
+   note3[<b>Reward History Notes:</b><br/>- Reward history for only the current app session]:::homeFull
+   note4[<b>Focus History Notes:</b><br/>- Focus session history for only the current app session]:::homeFull
 
    %% Connect notes
    HomeFull -.->|State Notes| note1
@@ -155,7 +155,7 @@ flowchart TD
 
 ### 3.3 State Management Strategy
 - Client-Only Application: All state is managed client-side without server storage
-- Session State: Timer state, current focus duration, points earned, points earned per minute, total points (capped at MAX_SAFE_INTEGER), reward history (for current session only), focus session history (for current session only)
+- Session State: Timer state, current focus duration, points earned, points earned per minute, total points (capped at MAX_SAFE_INTEGER), reward history (for current app session only), focus session history (for current app session only)
 - All state is lost on page close
 - No backend storage
 
@@ -164,3 +164,4 @@ flowchart TD
 - No Authentication: No user accounts, no login required
 - No Data Persistence: All state is lost on page close/reload
 - No Server-Side Validation: All validation is client-side
+
