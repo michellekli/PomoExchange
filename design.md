@@ -20,9 +20,9 @@ PomoExchange intentionally uses a tighter focus-to-break ratio than traditional 
 2. Focus Session Management
    - User can begin and end a focus session
    - User can set the length of time for the focus session
-   - User can end a focus session early and still gain points
-   - User can wait until the focus session is complete to end it and gain points
-   - Points are awarded identically whether ending early or waiting for completion - reward is based purely on time spent focusing
+   - User can end a focus session at any time (early or at completion)
+   - Points are based purely on elapsed time — no penalty for ending early, no bonus for completing
+   - This gives users flexibility for real-world interruptions without creating pressure to optimize around the timer
 
 3. Points Calculation
    - User receives points when ending a focus session
@@ -48,7 +48,7 @@ PomoExchange intentionally uses a tighter focus-to-break ratio than traditional 
    - Focus session history for the current app session is viewable through Home Screen after first focus session
    - Reward history for the current app session is visible on Home Screen after first reward redemption
 
-5. Intentionally use a 4:1 focus-to-break ratio to encourage sustained focus beyond traditional Pomodoro. Comparisons are normalized to 100 minutes of focus (equivalent to 4 traditional Pomodoros):
+5. Intentionally default to a 4:1 focus-to-break ratio to encourage sustained focus beyond traditional Pomodoro. Comparisons are normalized to 100 minutes of focus (equivalent to 4 traditional Pomodoros):
    - Traditional Pomodoro: 4 × 25 min = 100 min focus. Breaks = 3 × 5 min short + 1 long break (15–30 min) = 30–45 min total break → ratio 3.33:1 to 2.22:1
    - PomoExchange: 100 min focus × 0.05 pts/min = 5 points = 25 min total break → ratio 4:1
    
@@ -108,20 +108,11 @@ flowchart TD
 
    %% Timer Screen
    Timer[Timer Screen<br/>View time remaining]:::timer
-   Timer -->|End Early| EndEarly
-   Timer -->|Time Complete| Complete
+   Timer -->|End Session| EndSession
 
-   %% End Early Path
-   EndEarly[End Early<br/>Calculate points]:::action
-   EndEarly -->|Points Earned| HomeExtended
-
-   %% Complete Path
-   Complete[Focus Complete<br/>Show time elapsed]:::timer
-   Complete -->|Finish & Earn Points| EarnPoints
-
-   %% Earn Points Path
-   EarnPoints[Calculate Points<br/>Earned]:::action
-   EarnPoints -->|Points Earned| HomeExtended
+   %% End Session
+   EndSession[End Session<br/>Calculate points based on elapsed time]:::action
+    EndSession -->|Points Earned| HomeExtended
 
    %% Home Screen - Extended
    HomeExtended[Home Screen - Extended<br/>View Points, Rewards & History<br/>Configure Duration & Points/Minute]:::homeExtended
