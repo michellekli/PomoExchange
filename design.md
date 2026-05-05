@@ -24,7 +24,7 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
    - User receives points when ending a focus session
    - Points formula: `points = time_elapsed_minutes * points_per_minute`
    - User can set the number of points earned per minute elapsed
-   - Points are capped at max numeric value supported
+   - Points are capped at MAX_SAFE_INTEGER
 
 4. Reward System
    - User can view available rewards
@@ -40,7 +40,7 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
    - Timer should display time remaining during focus session
 
 2. Data Persistence
-   - All state is lost if user loses connection or closes web app
+   - All state is lost on page close
    - Points overflow is handled by capping at max numeric value
 
 3. Motivation & Engagement
@@ -155,7 +155,7 @@ flowchart TD
 
 ### 3.3 State Management Strategy
 - Client-Only Application: All state is managed client-side without server storage
-- Session State: Timer state, current focus duration, points earned, user settings (points/minute), total points (capped at MAX_SAFE_INTEGER), reward history, focus session history
+- Session State: Timer state, current focus duration, points earned, points earned per minute, total points (capped at MAX_SAFE_INTEGER), reward history (for current session only), focus session history (for current session only)
 - All state is lost on page close
 - No backend storage
 
