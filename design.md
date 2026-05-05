@@ -137,11 +137,11 @@ flowchart TD
    RewardConfirmation -->|Deduct Points| HomeExtended
 
    %% Reward History
-   HomeExtended -.->|View Reward History| RewardHistory
+   HomeExtended -.->|Inline shape collection| RewardHistory
    HomeExtended -.->|View Focus History| FocusHistory
 
    %% Reward History
-   RewardHistory[Reward History<br/>Display number of redeemed rewards]:::homeExtended
+   RewardHistory[Reward History<br/>Tier-differentiated shapes (Small=circle, Medium=triangle, Large=square); hover/touch reveals redemption time, tier, cost]:::homeExtended
 
    %% Focus History
    FocusHistory[Focus History<br/>List completed focus sessions]:::homeExtended
@@ -157,7 +157,7 @@ flowchart TD
 | **Screen States** | HomeExtended includes all HomeBase functionality (duration and points_per_minute configuration) plus points display, reward catalog, and session history<br/>Home screen transitions from Base to Extended after first focus session |
 | **Rewards** | Rewards require points to redeem<br/>Points deducted upon confirmation<br/>Reward history updated after redemption |
 | **Affordability** | Checked at catalog display<br/>Only affordable rewards selectable<br/>No error screen needed |
-| **Reward History** | Reward history for only the current app session |
+| **Reward History** | Displayed inline on Extended Home as a row of tier-differentiated shapes: Small=circle, Medium=triangle, Large=square. Hover (desktop) or tap (mobile) reveals redemption timestamp, tier, and points cost. Scoped to current app session only. |
 | **Focus History** | Focus session history for only the current app session |
 
 ### 3.2 Technical Stack
