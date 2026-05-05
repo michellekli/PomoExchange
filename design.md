@@ -101,11 +101,11 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
 ```mermaid
 flowchart TD
    %% Define styles
-   classDef welcome fill:#1565c0,stroke:#1976d2,stroke-width:2px,color:#fff
-   classDef homeBase fill:#616161,stroke:#9e9e9e,stroke-width:2px,color:#fff
-   classDef timer fill:#e65100,stroke:#f57c00,stroke-width:2px,color:#fff
-   classDef homeExtended fill:#2e7d32,stroke:#388e3c,stroke-width:2px,color:#fff
-   classDef action fill:#f57f17,stroke:#f9a825,stroke-width:2px,color:#fff
+   classDef welcome fill:#1565c0,stroke:#1976d2,stroke-width:2px,color:#fff,text-align:left
+   classDef homeBase fill:#616161,stroke:#9e9e9e,stroke-width:2px,color:#fff,text-align:left
+   classDef timer fill:#e65100,stroke:#f57c00,stroke-width:2px,color:#fff,text-align:left
+   classDef homeExtended fill:#2e7d32,stroke:#388e3c,stroke-width:2px,color:#fff,text-align:left
+   classDef action fill:#f57f17,stroke:#f9a825,stroke-width:2px,color:#fff,text-align:left
 
    %% Welcome Dialog
    Welcome[Welcome Dialog<br/>Explain time→points→rewards flow]:::welcome
@@ -121,11 +121,11 @@ flowchart TD
 
    %% End Session
    EndSession[End Session<br/>Calculate points based on elapsed time]:::action
-    EndSession -->|Points Earned| HomeExtended
+   EndSession -->|Points Earned| HomeExtended
 
-    %% Home Screen - Extended
-    HomeExtended[Home Screen - Extended<br/>View Points, Rewards & History<br/>Configure Duration & Points/Minute<br/>Inline Reward History Bar, Focus History List & Reward Catalog]:::homeExtended
-    HomeExtended -->|Start Focus Session| Timer
+   %% Home Screen - Extended
+   HomeExtended[Home Screen - Extended<br/>View Points, Rewards & History<br/>Configure Duration & Points/Minute<br/>Inline Reward History Bar, Focus History List & Reward Catalog]:::homeExtended
+   HomeExtended -->|Start Focus Session| Timer
 
 ```
 
