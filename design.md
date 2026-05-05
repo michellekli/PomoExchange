@@ -198,8 +198,8 @@ flowchart TD
 
 ```
 App
-├── WelcomeDialog
 ├── HomeScreen
+│   ├── WelcomeDialog (conditional: shown on first visit)
 │   ├── SessionConfig (duration input, points/minute selector)
 │   ├── PointsDisplay
 │   ├── FocusHistorySection
