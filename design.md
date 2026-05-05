@@ -41,7 +41,7 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
 
 2. Data Persistence
    - All state is lost on page close
-   - Points overflow is handled by capping at max numeric value
+   - Points overflow is handled by capping at MAX_SAFE_INTEGER
 
 3. Motivation & Engagement
    - Reward history motivates users by visually displaying redeemed rewards
