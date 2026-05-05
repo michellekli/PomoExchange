@@ -40,7 +40,6 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
       - Medium: 2 points (40 min focus at default rate)
       - Large: 3 points (60 min focus at default rate)
    - User can redeem a reward using earned points
-   - Reward catalog displays only rewards the user can afford
    - Insufficient rewards are disabled/grayed out with insufficient points message
    - User cannot select a reward they don't have enough points for
    - Focus session history for the current app session is viewable through Home Screen after first focus session
@@ -77,18 +76,18 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
 flowchart TD
    %% Define styles
    classDef welcome fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-   classDef homeMinimal fill:#f5f5f5,stroke:#424242,stroke-width:2px
+   classDef homeBase fill:#f5f5f5,stroke:#424242,stroke-width:2px
    classDef timer fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-   classDef homeFull fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+   classDef homeExtended fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
    classDef action fill:#ffeb3b,stroke:#f9a825,stroke-width:2px
 
    %% Welcome Dialog
    Welcome[Welcome Dialog<br/>Explain time→points→rewards flow]:::welcome
-   Welcome -->|Close| HomeMinimal
+   Welcome -->|Close| HomeBase
 
-   %% Home Screen - Minimal
-   HomeMinimal[Home Screen - Minimal<br/>Select duration & Points/Minute]:::homeMinimal
-   HomeMinimal -->|Start Focus Session| Timer
+   %% Home Screen - Base
+   HomeBase[Home Screen - Base<br/>Select duration & Points/Minute]:::homeBase
+   HomeBase -->|Start Focus Session| Timer
 
    %% Timer Screen
    Timer[Timer Screen<br/>View time remaining]:::timer
@@ -97,7 +96,7 @@ flowchart TD
 
    %% End Early Path
    EndEarly[End Early<br/>Calculate points]:::action
-   EndEarly -->|Points Earned| HomeFull
+   EndEarly -->|Points Earned| HomeExtended
 
    %% Complete Path
    Complete[Focus Complete<br/>Show time elapsed]:::timer
@@ -105,21 +104,21 @@ flowchart TD
 
    %% Earn Points Path
    EarnPoints[Calculate Points<br/>Earned]:::action
-   EarnPoints -->|Points Earned| HomeFull
+   EarnPoints -->|Points Earned| HomeExtended
 
-   %% Home Screen - Full
-   HomeFull[Home Screen - Full<br/>View Points & Rewards]:::homeFull
-   HomeFull -->|Start Focus Session| Timer
-   HomeFull -->|View Available Rewards| RewardSelection
+   %% Home Screen - Extended
+   HomeExtended[Home Screen - Extended<br/>View Points, Rewards & History<br/>Configure Duration & Points/Minute]:::homeExtended
+   HomeExtended -->|Start Focus Session| Timer
+   HomeExtended -->|View Available Rewards| RewardSelection
 
    %% Reward Selection Path
    RewardSelection[Select Reward from Catalog]:::action
    RewardSelection -->|Browse Catalog| RewardCatalog
 
    %% Reward Catalog
-   RewardCatalog[Reward Catalog<br/>Small 1pt 5 min: stretch, snack, walk<br/>Medium 2pt 10 min: longer walk, workout, YouTube<br/>Large 3pt 15 min: TV show, nap<br/>Only affordable rewards selectable]:::homeFull
+   RewardCatalog[Reward Catalog<br/>Small 1pt 5 min: stretch, snack, walk<br/>Medium 2pt 10 min: longer walk, workout, YouTube<br/>Large 3pt 15 min: TV show, nap<br/>Only affordable rewards selectable]:::homeExtended
    RewardCatalog -->|Choose Reward| RewardRedemption
-   RewardCatalog -->|Back to Home| HomeFull
+   RewardCatalog -->|Back to Home| HomeExtended
 
    %% Reward Redemption Path
    RewardRedemption[Reward Redemption<br/>Proceed to Confirmation]:::action
@@ -127,19 +126,19 @@ flowchart TD
 
    %% Reward Confirmation Path
    RewardConfirmation[Reward Confirmation<br/>Deduct points & complete redemption]:::action
-   RewardConfirmation -->|Deduct Points| HomeFull
+   RewardConfirmation -->|Deduct Points| HomeExtended
 
    %% Reward History
-   HomeFull -.->|View Reward History| RewardHistory
-   HomeFull -.->|View Focus History| FocusHistory
+   HomeExtended -.->|View Reward History| RewardHistory
+   HomeExtended -.->|View Focus History| FocusHistory
 
    %% Reward History
-   RewardHistory[Reward History<br/>Display number of redeemed rewards]:::homeFull
+   RewardHistory[Reward History<br/>Display number of redeemed rewards]:::homeExtended
 
    %% Focus History
-   FocusHistory[Focus History<br/>List completed focus sessions]:::homeFull
+   FocusHistory[Focus History<br/>List completed focus sessions]:::homeExtended
    FocusHistory -->|View Details| FocusDetail
-   FocusDetail[Focus Detail<br/>Show duration & points earned]:::homeFull
+   FocusDetail[Focus Detail<br/>Show duration & points earned]:::homeExtended
 
 ```
 
@@ -147,6 +146,7 @@ flowchart TD
 | Category | Details |
 |----------|---------|
 | **State** | All state lost on page close<br/>Points capped at 10,000<br/>Points deducted on redemption<br/>No backend storage<br/>Client-side only |
+| **Screen States** | HomeExtended includes all HomeBase functionality (duration and points_per_minute configuration) plus points display, reward catalog, and session history<br/>Home screen transitions from Base to Extended after first focus session |
 | **Rewards** | Rewards require points to redeem<br/>Points deducted upon confirmation<br/>Reward history updated after redemption |
 | **Affordability** | Checked at catalog display<br/>Only affordable rewards selectable<br/>No error screen needed |
 | **Reward History** | Reward history for only the current app session |
