@@ -24,10 +24,10 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
 
 3. Points Calculation
    - User receives points when ending a focus session
-   - Points formula: `points = time_elapsed_minutes * points_per_minute`
-   - Default points_per_minute = 0.05
+   - Points formula: `points = elapsedMinutes * pointsPerMinute`
+   - Default pointsPerMinute = 0.05
    - User can set the number of points earned per minute elapsed
-   - The points_per_minute setting persists across focus sessions within the same app session
+   - The pointsPerMinute setting persists across focus sessions within the same app session
    - Points are capped at 10,000
    - If earning points would exceed the cap, the user receives points only up to 10,000
    - User is notified before starting a focus session when at cap
@@ -133,7 +133,7 @@ flowchart TD
 | Category | Details |
 |----------|---------|
 | **State** | All state lost on page close/reload<br/>Points deducted on redemption<br/>No backend storage<br/>Client-side only |
-| **Screen States** | HomeExtended includes all HomeBase functionality (duration and points_per_minute configuration) plus points display, reward catalog, and focus session history; reward history appears conditionally after the first reward redemption<br/>Home screen transitions from Base to Extended after first focus session |
+| **Screen States** | HomeExtended includes all HomeBase functionality (duration and pointsPerMinute configuration) plus points display, reward catalog, and focus session history; reward history appears conditionally after the first reward redemption<br/>Home screen transitions from Base to Extended after first focus session |
 | **Rewards** | Rewards require points to redeem<br/>Points deducted upon confirmation<br/>Reward history updated after redemption |
 | **Affordability** | Checked at catalog display<br/>Only affordable rewards selectable<br/>No error screen needed |
 | **Reward History Bar** | Displayed inline on Extended Home after first reward redemption as a row of tier-differentiated shapes: Small=triangle, Medium=square, Large=pentagon. Hover (desktop) or tap (mobile) reveals redemption timestamp, tier, and points cost. Scoped to current app session only. |
