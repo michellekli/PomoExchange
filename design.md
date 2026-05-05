@@ -141,6 +141,7 @@ flowchart TD
 | **History Sections** | Reward History Bar and Focus History List are inline sections of the Home Extended screen, not separate navigable views or pages. |
 | **Reward Confirmation** | Triggered when selecting an affordable reward from the inline Reward Catalog. Implemented as `RewardConfirmationModal` (modal overlay on Home Screen), not a separate screen. Confirming deducts points and returns to Home Extended. |
 | **Points Cap Warning** | Persistent inline warning displayed near the "Start Focus Session" button on Home Screen (Base/Extended) when `pointsBalance >= 10000`. No dismiss option; hidden automatically when points drop below 10k (via reward redemption). Informs user they will earn 0 points for focus sessions while at cap. |
+| **Route Guards** | `/timer` route is protected by `ProtectedRoute` wrapper. If user navigates to `/timer` when `!isSessionActive` (e.g., direct URL access, page reload), they are automatically redirected to `/` (Home Screen). |
 
 ### 3.2 Technical Stack
 
@@ -184,9 +185,10 @@ App
 │   └── RewardCatalog
 │       ├── RewardTierCard (Small, Medium, Large)
 │       └── RewardConfirmationModal
-└── TimerScreen
-    ├── TimerDisplay
-    └── EndSessionButton
+└── ProtectedRoute
+    └── TimerScreen
+        ├── TimerDisplay
+        └── EndSessionButton
 ```
 
 ### 4.2 Component Responsibilities
@@ -208,6 +210,7 @@ App
 | `TimerScreen` | Displays countdown timer; handles session end |
 | `TimerDisplay` | Large time-remaining display with visual progress indicator |
 | `EndSessionButton` | Ends session early or at completion; triggers points calculation |
+| `ProtectedRoute` | Wrapper component that reads `isSessionActive` from `AppStateContext`. If `true`, renders child component (`TimerScreen`). If `false`, redirects to `/` (Home Screen) via React Router `Navigate` component. |
 
 ### 4.3 Data Types
 
@@ -340,4 +343,4 @@ isAffordable = state.pointsBalance >= REWARD_TIERS[tier].cost
 | Route | Component | Notes |
 |-------|-----------|-------|
 | `/` | HomeScreen | Default route; shows WelcomeDialog if first visit |
-| `/timer` | TimerScreen | Active focus session only; accessible only when `isSessionActive` |
+| `/timer` | ProtectedRoute → TimerScreen | Active focus session only; wrapped with `ProtectedRoute` that redirects to `/` if `!isSessionActive` |
