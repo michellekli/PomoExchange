@@ -41,7 +41,6 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
       - Large: 3 points (60 min focus at default rate)
    - User can redeem a reward using earned points
    - Insufficient rewards are disabled/grayed out with insufficient points message
-   - User cannot select a reward they don't have enough points for
    - Focus session history for the current app session is viewable through Home Screen after first focus session
    - Reward history for the current app session is visible on Home Screen after first reward redemption
 
@@ -53,7 +52,7 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
    - Timer should display time remaining during focus session
 
 2. Data Persistence
-   - All state is lost on page close
+   - All state is lost on page close/reload
    - Points overflow is handled by capping at 10,000
 
 3. Motivation & Engagement
@@ -67,6 +66,9 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
 2. Create immediate, tangible rewards for maintaining focus
 3. Bridge the gap between traditional Pomodoro technique and user motivation
 4. Encourage sustained focus through tangible, self-selected reward incentives
+
+### 2.4 Definitions
+1. App Session: The period from when a user loads the page in their browser until they close the tab or navigate away. All history (focus sessions and rewards) is scoped to a single app session and is lost when the session ends.
 
 ## 3. Architecture Overview
 
@@ -145,7 +147,7 @@ flowchart TD
 #### Notes
 | Category | Details |
 |----------|---------|
-| **State** | All state lost on page close<br/>Points capped at 10,000<br/>Points deducted on redemption<br/>No backend storage<br/>Client-side only |
+| **State** | All state lost on page close/reload<br/>Points capped at 10,000<br/>Points deducted on redemption<br/>No backend storage<br/>Client-side only |
 | **Screen States** | HomeExtended includes all HomeBase functionality (duration and points_per_minute configuration) plus points display, reward catalog, and session history<br/>Home screen transitions from Base to Extended after first focus session |
 | **Rewards** | Rewards require points to redeem<br/>Points deducted upon confirmation<br/>Reward history updated after redemption |
 | **Affordability** | Checked at catalog display<br/>Only affordable rewards selectable<br/>No error screen needed |
@@ -168,7 +170,7 @@ flowchart TD
 ### 3.3 State Management Strategy
 - Client-Only Application: All state is managed client-side without server storage
 - Session State: Timer state, current focus duration, points earned, points earned per minute, total points (capped at 10,000), reward history (for current app session only), focus session history (for current app session only)
-- All state is lost on page close
+- All state is lost on page close/reload
 - No backend storage
 
 ### 3.4 Design Constraints
