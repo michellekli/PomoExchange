@@ -123,37 +123,9 @@ flowchart TD
    EndSession[End Session<br/>Calculate points based on elapsed time]:::action
     EndSession -->|Points Earned| HomeExtended
 
-   %% Home Screen - Extended
-   HomeExtended[Home Screen - Extended<br/>View Points, Rewards & History<br/>Configure Duration & Points/Minute]:::homeExtended
-   HomeExtended -->|Start Focus Session| Timer
-   HomeExtended -->|View Available Rewards| RewardSelection
-
-   %% Reward Selection Path
-   RewardSelection[Select Reward from Catalog]:::action
-   RewardSelection -->|Browse Catalog| RewardCatalog
-
-   %% Reward Catalog
-   RewardCatalog[Reward Catalog<br/>Small 1pt 5 min: stretch, snack, walk<br/>Medium 2pt 10 min: longer walk, workout, YouTube<br/>Large 3pt 15 min: TV show, nap<br/>Only affordable rewards selectable]:::homeExtended
-   RewardCatalog -->|Choose Reward| RewardRedemption
-   RewardCatalog -->|Back to Home| HomeExtended
-
-   %% Reward Redemption Path
-   RewardRedemption[Reward Redemption<br/>Proceed to Confirmation]:::action
-   RewardRedemption -->|Confirm Points Deduction| RewardConfirmation
-
-   %% Reward Confirmation Path
-   RewardConfirmation[Reward Confirmation<br/>Deduct points & complete redemption]:::action
-   RewardConfirmation -->|Deduct Points| HomeExtended
-
-   %% Reward History
-   HomeExtended -.->|Inline shape collection| RewardHistory
-   HomeExtended -.->|View Focus History| FocusHistory
-
-   %% Reward History
-   RewardHistory[Reward History<br/>Tier-differentiated shapes: Small=triangle, Medium=square, Large=pentagon; hover/touch reveals redemption time, tier, cost]:::homeExtended
-
-   %% Focus History
-   FocusHistory[Focus History<br/>List completed focus sessions<br/>Inline details per session]:::homeExtended
+    %% Home Screen - Extended
+    HomeExtended[Home Screen - Extended<br/>View Points, Rewards & History<br/>Configure Duration & Points/Minute<br/>Inline Reward History Bar, Focus History List & Reward Catalog]:::homeExtended
+    HomeExtended -->|Start Focus Session| Timer
 
 ```
 
@@ -164,8 +136,10 @@ flowchart TD
 | **Screen States** | HomeExtended includes all HomeBase functionality (duration and points_per_minute configuration) plus points display, reward catalog, and focus session history; reward history appears conditionally after the first reward redemption<br/>Home screen transitions from Base to Extended after first focus session |
 | **Rewards** | Rewards require points to redeem<br/>Points deducted upon confirmation<br/>Reward history updated after redemption |
 | **Affordability** | Checked at catalog display<br/>Only affordable rewards selectable<br/>No error screen needed |
-| **Reward History** | Displayed inline on Extended Home after first reward redemption as a row of tier-differentiated shapes: Small=triangle, Medium=square, Large=pentagon. Hover (desktop) or tap (mobile) reveals redemption timestamp, tier, and points cost. Scoped to current app session only. |
-| **Focus History** | Focus session history for only the current app session |
+| **Reward History Bar** | Displayed inline on Extended Home after first reward redemption as a row of tier-differentiated shapes: Small=triangle, Medium=square, Large=pentagon. Hover (desktop) or tap (mobile) reveals redemption timestamp, tier, and points cost. Scoped to current app session only. |
+| **Focus History List** | Focus session history for only the current app session |
+| **History Sections** | Reward History Bar and Focus History List are inline sections of the Home Extended screen, not separate navigable views or pages. |
+| **Reward Confirmation** | Triggered when selecting an affordable reward from the inline Reward Catalog. Implemented as `RewardConfirmationModal` (modal overlay on Home Screen), not a separate screen. Confirming deducts points and returns to Home Extended. |
 
 ### 3.2 Technical Stack
 
