@@ -24,8 +24,9 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
 3. Points Calculation
    - User receives points when ending a focus session
    - Points formula: `points = time_elapsed_minutes * points_per_minute`
+   - Default points_per_minute = 0.05
    - User can set the number of points earned per minute elapsed
-   - Points are capped at MAX_SAFE_INTEGER
+   - Points are capped at 10,000
 
 4. Reward System
    - Three predefined reward tiers:
@@ -34,6 +35,10 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
      - Large: 15 minutes (suggestions: watching half a TV show, a quick nap)
    - Each tier displays suggested duration and example activities
    - User self-selects how to reward themselves within the chosen tier
+   - Reward costs:
+      - Small: 1 point (20 min focus at default rate)
+      - Medium: 2 points (40 min focus at default rate)
+      - Large: 3 points (60 min focus at default rate)
    - User can redeem a reward using earned points
    - User can't redeem the selected reward if they don't have enough points
    - Focus session history for the current app session is viewable through Home Screen after first focus session
@@ -48,7 +53,7 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
 
 2. Data Persistence
    - All state is lost on page close
-   - Points overflow is handled by capping at MAX_SAFE_INTEGER
+   - Points overflow is handled by capping at 10,000
 
 3. Motivation & Engagement
    - Reward history motivates users by visually displaying redeemed rewards
@@ -110,7 +115,7 @@ flowchart TD
    RewardSelection -->|Browse Catalog| RewardCatalog
 
    %% Reward Catalog
-   RewardCatalog[Reward Catalog<br/>Small ~5 min: stretch, snack, walk<br/>Medium ~10 min: longer walk, workout, YouTube<br/>Large ~15 min: TV show, nap]:::homeFull
+   RewardCatalog[Reward Catalog<br/>Small 1pt 5 min: stretch, snack, walk<br/>Medium 2pt 10 min: longer walk, workout, YouTube<br/>Large 3pt 15 min: TV show, nap]:::homeFull
    RewardCatalog -->|Choose Reward| RewardRedemption
    RewardCatalog -->|Back to Home| HomeFull
 
@@ -144,7 +149,7 @@ flowchart TD
 #### Notes
 | Category | Details |
 |----------|---------|
-| **State** | All state lost on page close<br/>Points capped at MAX_SAFE_INTEGER<br/>Points deducted on redemption<br/>No backend storage<br/>Client-side only |
+| **State** | All state lost on page close<br/>Points capped at 10,000<br/>Points deducted on redemption<br/>No backend storage<br/>Client-side only |
 | **Rewards** | Rewards require points to redeem<br/>Points deducted upon confirmation<br/>Reward history updated after redemption |
 | **Reward History** | Reward history for only the current app session |
 | **Focus History** | Focus session history for only the current app session |
@@ -164,7 +169,7 @@ flowchart TD
 
 ### 3.3 State Management Strategy
 - Client-Only Application: All state is managed client-side without server storage
-- Session State: Timer state, current focus duration, points earned, points earned per minute, total points (capped at MAX_SAFE_INTEGER), reward history (for current app session only), focus session history (for current app session only)
+- Session State: Timer state, current focus duration, points earned, points earned per minute, total points (capped at 10,000), reward history (for current app session only), focus session history (for current app session only)
 - All state is lost on page close
 - No backend storage
 
