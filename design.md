@@ -141,21 +141,13 @@ flowchart TD
 
 ```
 
-```mermaid
-flowchart TD
-   %% State Notes
-   note1[<b>State Notes:</b><br/>- All state lost on page close<br/>- Points capped at MAX_SAFE_INTEGER<br/>- Points deducted on redemption<br/>- No backend storage<br/>- Client-side only]:::homeFull
-   note2[<b>Reward Notes:</b><br/>- Rewards require points to redeem<br/>- Points deducted upon confirmation<br/>- Reward history updated after redemption]:::homeFull
-   note3[<b>Reward History Notes:</b><br/>- Reward history for only the current app session]:::homeFull
-   note4[<b>Focus History Notes:</b><br/>- Focus session history for only the current app session]:::homeFull
-
-   %% Connect notes
-   HomeFull -.->|State Notes| note1
-   RewardRedemption -.->|Reward Notes| note2
-   RewardHistory -.->|Reward History Notes| note3
-   FocusHistory -.->|Focus History Notes| note4
-
-```
+#### Notes
+| Category | Details |
+|----------|---------|
+| **State** | All state lost on page close<br/>Points capped at MAX_SAFE_INTEGER<br/>Points deducted on redemption<br/>No backend storage<br/>Client-side only |
+| **Rewards** | Rewards require points to redeem<br/>Points deducted upon confirmation<br/>Reward history updated after redemption |
+| **Reward History** | Reward history for only the current app session |
+| **Focus History** | Focus session history for only the current app session |
 
 ### 3.2 Technical Stack
 
