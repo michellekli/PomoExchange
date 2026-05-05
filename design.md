@@ -31,7 +31,7 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
    - User can set the number of points earned per minute elapsed
    - The points_per_minute setting persists across focus sessions within the same app session
    - Points are capped at 10,000
-   - Sessions at or above cap earn zero points
+   - If earning points would exceed the cap, the user receives points only up to 10,000
    - User is notified before starting a focus session when at cap
 
 4. Reward System
@@ -158,7 +158,7 @@ flowchart TD
 | **Screen States** | HomeExtended includes all HomeBase functionality (duration and points_per_minute configuration) plus points display, reward catalog, and session history<br/>Home screen transitions from Base to Extended after first focus session |
 | **Rewards** | Rewards require points to redeem<br/>Points deducted upon confirmation<br/>Reward history updated after redemption |
 | **Affordability** | Checked at catalog display<br/>Only affordable rewards selectable<br/>No error screen needed |
-| **Reward History** | Displayed inline on Extended Home as a row of tier-differentiated shapes: Small=triangle, Medium=square, Large=pentagon. Hover (desktop) or tap (mobile) reveals redemption timestamp, tier, and points cost. Scoped to current app session only. |
+| **Reward History** | Displayed inline on Extended Home after first reward redemption as a row of tier-differentiated shapes: Small=triangle, Medium=square, Large=pentagon. Hover (desktop) or tap (mobile) reveals redemption timestamp, tier, and points cost. Scoped to current app session only. |
 | **Focus History** | Focus session history for only the current app session |
 
 ### 3.2 Technical Stack
@@ -177,12 +177,10 @@ flowchart TD
 ### 3.3 State Management Strategy
 - Client-Only Application: All state is managed client-side without server storage
 - Session State: User-configured minutes for focus session, minutes spent focusing (for current focus session), points balance, points earned per minute (persists within the current app session), reward history (for current app session only), focus session history (for current app session only)
-- All state is lost on page close/reload
 - No backend storage
 
 ### 3.4 Design Constraints
 - Client-Only Application: No backend, no API calls
 - No Authentication: No user accounts, no login required
-- No Data Persistence: All state is lost on page close/reload
 - No Server-Side Validation: All validation is client-side
 
