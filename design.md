@@ -204,9 +204,8 @@ App
 │   ├── PointsDisplay
 │   ├── FocusHistorySection
 │   │   ├── FocusHistoryHeader (expand/collapse toggle)
-│   │   ├── FocusHistoryList (collapsible)
-│   │   │   └── FocusSessionItem
-│   │   └── FocusSessionItem
+│   │   └── FocusHistoryList (collapsible)
+│   │       └── FocusSessionItem
 │   ├── RewardHistoryBar
 │   │   └── RewardShape
 │   └── RewardCatalog
