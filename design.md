@@ -158,7 +158,7 @@ flowchart TD
 
 ### 3.3 State Management Strategy
 - Client-Only Application: All state is managed client-side without server storage
-- Session State: User-configured minutes for focus session, minutes spent focusing (for current focus session), points balance, points earned per minute (persists within the current app session), reward history (for current app session only), focus session history (for current app session only)
+- Session State: User-configured minutes for focus session, active session start time (for elapsed time calculation), points balance, points earned per minute (persists within the current app session), reward history (for current app session only), focus session history (for current app session only)
 - No backend storage
 
 ### 3.4 Design Constraints
