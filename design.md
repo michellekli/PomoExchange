@@ -8,7 +8,7 @@ Unlike passive time-tracking apps, PomoExchange replaces the passive break with 
 
 PomoExchange gamifies time blocking by replacing the traditional break with point-earned rewards. Users stay focused to earn points, which they can redeem for break activities like quick walks or stretches.
 
-PomoExchange intentionally uses a tighter focus-to-break ratio than traditional Pomodoro (4:1 vs 3.33:1), encouraging sustained focus beyond the standard 25-minute blocks. Rather than mandating breaks, users choose when and how to spend their earned break time.
+PomoExchange intentionally defaults to a tighter focus-to-break ratio than traditional Pomodoro (4:1 vs 3.33:1), encouraging sustained focus beyond the standard 25-minute blocks. Rather than mandating breaks, users choose when and how to spend their earned break time.
 
 ## 2. Requirements & Goals
 
@@ -31,6 +31,8 @@ PomoExchange intentionally uses a tighter focus-to-break ratio than traditional 
    - User can set the number of points earned per minute elapsed
    - The points_per_minute setting persists across focus sessions within the same app session
    - Points are capped at 10,000
+   - Sessions at or above cap earn zero points
+   - User is notified before starting a focus session when at cap
 
 4. Reward System
    - Three predefined reward tiers:
@@ -140,7 +142,7 @@ flowchart TD
    HomeExtended -.->|View Focus History| FocusHistory
 
    %% Reward History
-   RewardHistory[Reward History<br/>Tier-differentiated shapes (Small=circle, Medium=triangle, Large=square); hover/touch reveals redemption time, tier, cost]:::homeExtended
+   RewardHistory[Reward History<br/>Tier-differentiated shapes (Small=triangle, Medium=square, Large=pentagon); hover/touch reveals redemption time, tier, cost]:::homeExtended
 
    %% Focus History
    FocusHistory[Focus History<br/>List completed focus sessions]:::homeExtended
@@ -156,7 +158,7 @@ flowchart TD
 | **Screen States** | HomeExtended includes all HomeBase functionality (duration and points_per_minute configuration) plus points display, reward catalog, and session history<br/>Home screen transitions from Base to Extended after first focus session |
 | **Rewards** | Rewards require points to redeem<br/>Points deducted upon confirmation<br/>Reward history updated after redemption |
 | **Affordability** | Checked at catalog display<br/>Only affordable rewards selectable<br/>No error screen needed |
-| **Reward History** | Displayed inline on Extended Home as a row of tier-differentiated shapes: Small=circle, Medium=triangle, Large=square. Hover (desktop) or tap (mobile) reveals redemption timestamp, tier, and points cost. Scoped to current app session only. |
+| **Reward History** | Displayed inline on Extended Home as a row of tier-differentiated shapes: Small=triangle, Medium=square, Large=pentagon. Hover (desktop) or tap (mobile) reveals redemption timestamp, tier, and points cost. Scoped to current app session only. |
 | **Focus History** | Focus session history for only the current app session |
 
 ### 3.2 Technical Stack
@@ -174,7 +176,7 @@ flowchart TD
 
 ### 3.3 State Management Strategy
 - Client-Only Application: All state is managed client-side without server storage
-- Session State: User-configured minutes for focus session, minutes spent focusing, points earned, points earned per minute (persists within the current app session), total points, reward history (for current app session only), focus session history (for current app session only)
+- Session State: User-configured minutes for focus session, minutes spent focusing, points balance, points earned per minute (persists within the current app session), reward history (for current app session only), focus session history (for current app session only)
 - All state is lost on page close/reload
 - No backend storage
 
