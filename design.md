@@ -275,7 +275,7 @@ const DEFAULT_POINTS_PER_MINUTE = 0.05;
 const REWARD_TIERS = {
   small:  { duration: 5,  cost: 1, suggestions: ['Stretching', 'Get a snack', 'Walk around'] },
   medium: { duration: 10, cost: 2, suggestions: ['Walk outside', 'Quick workout', 'YouTube video'] },
-  large:  { duration: 15, cost: 3, suggestions: ['Watch some TV', 'Quick nap'] },
+  large:  { duration: 15, cost: 3, suggestions: ['Watching half a TV show', 'Quick nap'] },
 } as const;
 ```
 
