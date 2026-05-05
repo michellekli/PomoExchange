@@ -199,7 +199,7 @@ App
 | `FocusHistorySection` | Expandable section for focus history; collapsed by default |
 | `FocusHistoryHeader` | Shows section title and expand/collapse toggle |
 | `FocusHistoryList` | Renders list of completed focus sessions for current app session; hidden when collapsed |
-| `FocusSessionItem` | Single session entry showing duration and points earned |
+| `FocusSessionItem` | Single session entry showing elapsed minutes and points earned |
 | `RewardHistoryBar` | Inline row of tier-differentiated shapes; hidden until first redemption |
 | `RewardShape` | Triangle/square/pentagon; hover/tap reveals timestamp, tier, cost |
 | `RewardCatalog` | Lists three tiers; disables unaffordable rewards |
@@ -216,7 +216,7 @@ type RewardTier = 'small' | 'medium' | 'large';
 
 interface FocusSession {
   id: string;
-  durationMinutes: number;
+  elapsedMinutes: number;
   pointsEarned: number;
   endedAt: Date;
 }
@@ -224,7 +224,6 @@ interface FocusSession {
 interface RewardRedemption {
   id: string;
   tier: RewardTier;
-  durationMinutes: number;
   pointsCost: number;
   redeemedAt: Date;
 }
@@ -293,7 +292,7 @@ const initialState: AppState = {
 - `SET_DURATION`: Updates `sessionConfig.durationMinutes`; ignored if `isSessionActive: true`
 - `SET_POINTS_PER_MINUTE`: Updates `sessionConfig.pointsPerMinute`; ignored if `isSessionActive: true`
 - `START_SESSION`: Sets `isSessionActive: true`, `sessionStartTime: new Date()`
-- `END_SESSION`: Calculates points from `sessionStartTime`, caps at 10,000, appends to `focusSessions`, sets `isSessionActive: false`, `sessionStartTime: null`
+- `END_SESSION`: Calculates `elapsedMinutes` as (session end time - `sessionStartTime`) in minutes (retain fractional values). Calculates points as `elapsedMinutes * state.sessionConfig.pointsPerMinute`, caps total points at 10,000. Appends new `FocusSession` entry with `elapsedMinutes` set to the calculated value and `pointsEarned` set to the capped points value. Sets `isSessionActive: false`, `sessionStartTime: null`.
 - `REDEEM_REWARD`: Checks affordability, deducts points, appends to `rewardHistory`
 
 ### 4.5 Screen Layouts
@@ -312,7 +311,7 @@ const initialState: AppState = {
 - Persistent inline points cap warning (displayed near Start Focus Session button when pointsBalance >= 10000)
 - Reward history bar (conditional, after first redemption)
 - Reward catalog section (responsive: 3-column grid on desktop, single column on mobile; suggestions shown on tap on mobile)
-- Focus history list at bottom (collapsible, collapsed by default)
+- Focus history list at bottom (collapsible, collapsed by default): shows each session's elapsed minutes and points earned
 
 **Timer Screen:**
 - Full-screen layout
