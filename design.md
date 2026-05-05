@@ -143,3 +143,8 @@ flowchart TD
 | Testing | Vitest | TBD | Fast, ESM-first, React integration |
 | Deployment | GitHub Pages | - | Static hosting, free |
 
+### 3.3 State Management Strategy
+- Client-Only Application: All state is managed client-side without server storage
+- Session State: Timer state, current focus duration, points earned, user settings (points/minute), total points (capped at MAX_SAFE_INTEGER), reward history, focus session history
+- All state is lost on page close
+- No backend storage
