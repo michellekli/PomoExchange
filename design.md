@@ -140,6 +140,7 @@ flowchart TD
 | **Focus History List** | Focus session history for only the current app session |
 | **History Sections** | Reward History Bar and Focus History List are inline sections of the Home Extended screen, not separate navigable views or pages. |
 | **Reward Confirmation** | Triggered when selecting an affordable reward from the inline Reward Catalog. Implemented as `RewardConfirmationModal` (modal overlay on Home Screen), not a separate screen. Confirming deducts points and returns to Home Extended. |
+| **Points Cap Warning** | Persistent inline warning displayed near the "Start Focus Session" button on Home Screen (Base/Extended) when `pointsBalance >= 10000`. No dismiss option; hidden automatically when points drop below 10k (via reward redemption). Informs user they will earn 0 points for focus sessions while at cap. |
 
 ### 3.2 Technical Stack
 
@@ -193,7 +194,7 @@ App
 | Component | Responsibility |
 |-----------|---------------|
 | `WelcomeDialog` | Shown once on first load; explains time → points → rewards flow |
-| `SessionConfig` | Duration input (minutes) and points/minute slider/input; disabled during active session |
+| `SessionConfig` | Duration input (minutes) and points/minute slider/input; disabled during active session. Contains "Start Focus Session" button. Conditionally renders a persistent inline cap warning near the Start button when `state.pointsBalance >= 10000`: *"You've reached the 10,000 points cap! Focus sessions will earn 0 points until you redeem rewards."* |
 | `PointsDisplay` | Shows current point balance; hidden until first session completed |
 | `FocusHistorySection` | Expandable section for focus history; collapsed by default |
 | `FocusHistoryHeader` | Shows section title and expand/collapse toggle |
@@ -302,11 +303,13 @@ const initialState: AppState = {
 - Duration input field
 - Points/minute input
 - "Start Focus Session" button
+- Persistent inline points cap warning (displayed near Start Focus Session button when pointsBalance >= 10000)
 
 **Home Screen (Extended):**
 - Points balance at top
 - Duration and points/minute config (same as Base)
 - "Start Focus Session" button
+- Persistent inline points cap warning (displayed near Start Focus Session button when pointsBalance >= 10000)
 - Reward history bar (conditional, after first redemption)
 - Reward catalog section (responsive: 3-column grid on desktop, single column on mobile; suggestions shown on tap on mobile)
 - Focus history list at bottom (collapsible, collapsed by default)
