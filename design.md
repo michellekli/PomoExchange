@@ -101,11 +101,11 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
 ```mermaid
 flowchart TD
    %% Define styles
-   classDef welcome fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-   classDef homeBase fill:#f5f5f5,stroke:#424242,stroke-width:2px
-   classDef timer fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-   classDef homeExtended fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-   classDef action fill:#ffeb3b,stroke:#f9a825,stroke-width:2px
+   classDef welcome fill:#1565c0,stroke:#1976d2,stroke-width:2px,color:#fff
+   classDef homeBase fill:#616161,stroke:#9e9e9e,stroke-width:2px,color:#fff
+   classDef timer fill:#e65100,stroke:#f57c00,stroke-width:2px,color:#fff
+   classDef homeExtended fill:#2e7d32,stroke:#388e3c,stroke-width:2px,color:#fff
+   classDef action fill:#f57f17,stroke:#f9a825,stroke-width:2px,color:#fff
 
    %% Welcome Dialog
    Welcome[Welcome Dialog<br/>Explain time→points→rewards flow]:::welcome
