@@ -30,6 +30,7 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
 4. Reward System
    - User can view available rewards
    - User can redeem a reward using earned points
+   - User can't redeem the selected reward if they don't have enough points
    - Focus session history for the current app session is viewable through Home Screen after first focus session
    - Reward history for the current app session is visible on Home Screen after first reward redemption
 
@@ -112,7 +113,7 @@ flowchart TD
    RewardRedemption -->|Confirm Points Deduction| RewardConfirmation
 
    %% Reward Confirmation Path
-   RewardConfirmation[Reward Confirmation<br/>Show points deducted]:::action
+   RewardConfirmation[Reward Confirmation<br/>Show points to deduct]:::action
    RewardConfirmation -->|Points Insufficient| ErrorScreen
    RewardConfirmation -->|Points Deducted| HomeFull
 
