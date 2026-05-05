@@ -40,7 +40,9 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
       - Medium: 2 points (40 min focus at default rate)
       - Large: 3 points (60 min focus at default rate)
    - User can redeem a reward using earned points
-   - User can't redeem the selected reward if they don't have enough points
+   - Reward catalog displays only rewards the user can afford
+   - Insufficient rewards are disabled/grayed out with insufficient points message
+   - User cannot select a reward they don't have enough points for
    - Focus session history for the current app session is viewable through Home Screen after first focus session
    - Reward history for the current app session is visible on Home Screen after first reward redemption
 
@@ -115,7 +117,7 @@ flowchart TD
    RewardSelection -->|Browse Catalog| RewardCatalog
 
    %% Reward Catalog
-   RewardCatalog[Reward Catalog<br/>Small 1pt 5 min: stretch, snack, walk<br/>Medium 2pt 10 min: longer walk, workout, YouTube<br/>Large 3pt 15 min: TV show, nap]:::homeFull
+   RewardCatalog[Reward Catalog<br/>Small 1pt 5 min: stretch, snack, walk<br/>Medium 2pt 10 min: longer walk, workout, YouTube<br/>Large 3pt 15 min: TV show, nap<br/>Only affordable rewards selectable]:::homeFull
    RewardCatalog -->|Choose Reward| RewardRedemption
    RewardCatalog -->|Back to Home| HomeFull
 
@@ -124,13 +126,8 @@ flowchart TD
    RewardRedemption -->|Confirm Points Deduction| RewardConfirmation
 
    %% Reward Confirmation Path
-   RewardConfirmation[Reward Confirmation<br/>Show points to deduct]:::action
-   RewardConfirmation -->|Points Insufficient| ErrorScreen
+   RewardConfirmation[Reward Confirmation<br/>Deduct points & complete redemption]:::action
    RewardConfirmation -->|Deduct Points| HomeFull
-
-   %% Error Screen Path
-   ErrorScreen[Error Screen<br/>Show insufficient points]:::action
-   ErrorScreen -->|Return to Catalog| RewardCatalog
 
    %% Reward History
    HomeFull -.->|View Reward History| RewardHistory
@@ -151,6 +148,7 @@ flowchart TD
 |----------|---------|
 | **State** | All state lost on page close<br/>Points capped at 10,000<br/>Points deducted on redemption<br/>No backend storage<br/>Client-side only |
 | **Rewards** | Rewards require points to redeem<br/>Points deducted upon confirmation<br/>Reward history updated after redemption |
+| **Affordability** | Checked at catalog display<br/>Only affordable rewards selectable<br/>No error screen needed |
 | **Reward History** | Reward history for only the current app session |
 | **Focus History** | Focus session history for only the current app session |
 
