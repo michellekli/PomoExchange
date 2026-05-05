@@ -81,7 +81,17 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
 3. Bridge the gap between traditional Pomodoro technique and user motivation
 4. Encourage sustained focus through tangible, self-selected reward incentives
 
-### 2.4 Definitions
+### 2.4 Non-Goals
+1. No user accounts or authentication — no login, no profiles, no multi-user support
+2. No persistent storage — all state is scoped to a single browser session; no localStorage or server-side storage
+3. No social features — no sharing, leaderboards, or community challenges
+4. No custom rewards — reward tiers (Small, Medium, Large) are predefined and not user-configurable
+5. No calendar integrations — no syncing with Google Calendar, Outlook, or other scheduling tools
+6. No push notifications or reminders — the app does not prompt users to start sessions
+7. No analytics or progress tracking across sessions — no dashboards, reports, or trend visualization
+8. No offline support beyond a loaded page — the app requires an initial page load and internet connection
+
+### 2.5 Definitions
 1. App Session: The period from when a user loads the page in their browser until they close the tab or navigate away. All history (focus sessions and rewards) is scoped to a single app session and is lost when the session ends.
 
 ## 3. Architecture Overview
