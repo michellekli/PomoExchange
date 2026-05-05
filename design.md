@@ -112,7 +112,7 @@ flowchart TD
    Welcome -->|Close| HomeBase
 
    %% Home Screen - Base
-   HomeBase[Home Screen - Base<br/>Select duration & Points/Minute]:::homeBase
+   HomeBase[Home Screen - Base<br/>Select duration & points/minute]:::homeBase
    HomeBase -->|Start Focus Session| Timer
 
    %% Timer Screen
@@ -124,7 +124,7 @@ flowchart TD
    EndSession -->|Points Earned| HomeExtended
 
    %% Home Screen - Extended
-   HomeExtended[Home Screen - Extended<br/>View Points, Rewards & History<br/>Configure Duration & Points/Minute<br/>Inline Reward History Bar, Focus History List & Reward Catalog]:::homeExtended
+   HomeExtended[Home Screen - Extended<br/>- View Points, Rewards & History<br/>- Configure Duration & Points/Minute<br/>- Inline Reward History Bar, Focus History List & Reward Catalog]:::homeExtended
    HomeExtended -->|Start Focus Session| Timer
 
 ```
