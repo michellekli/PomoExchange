@@ -29,8 +29,8 @@ PomoExchange gamifies time blocking by replacing the traditional break with poin
 4. Reward System
    - User can view available rewards
    - User can redeem a reward using earned points
+   - Focus session history for the current app session is viewable through Home Screen after first focus session
    - Reward history for the current app session is visible on Home Screen after first reward redemption
-   - Focus session history for the current app session is viewable through Home Screen after first reward redemption
 
 ### 2.2 Non-Functional Requirements
 
