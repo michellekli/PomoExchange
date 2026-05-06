@@ -133,6 +133,7 @@ flowchart TD
 | Category | Details |
 |----------|---------|
 | **State** | All state lost on page close/reload<br/>Points deducted on redemption<br/>No backend storage<br/>Client-side only |
+| **Welcome Dismissal** | WelcomeDialog dismissal is scoped to the current app session only; no cross-session persistence per Non-Goal #2. |
 | **Screen States** | HomeExtended includes all HomeBase functionality (duration and pointsPerMinute configuration) plus points display, reward catalog, and focus session history; reward history appears conditionally after the first reward redemption<br/>Home screen transitions from Base to Extended after first focus session |
 | **Rewards** | Rewards require points to redeem<br/>Points deducted upon confirmation<br/>Reward history updated after redemption |
 | **Affordability** | Checked at catalog display<br/>Only affordable rewards selectable<br/>No error screen needed |
@@ -195,7 +196,7 @@ App
 
 | Component | Responsibility |
 |-----------|---------------|
-| `WelcomeDialog` | Shown once on first load; explains time → points → rewards flow |
+| `WelcomeDialog` | Shown once per app session (on initial page load of each app session per Section 2.5); explains time → points → rewards flow. Resets to un-dismissed on page reload/navigation away per Section 2.2 NFR #2 (no persistent storage). |
 | `SessionConfig` | Duration input (minutes) and points/minute slider/input; disabled during active session. Contains "Start Focus Session" button. Conditionally renders a persistent inline cap warning near the Start button when `state.pointsBalance >= 10000`: *"You've reached the 10,000 points cap! Focus sessions will earn 0 points until you redeem rewards."* |
 | `PointsDisplay` | Shows current point balance; hidden until first session completed |
 | `FocusHistorySection` | Expandable section for focus history; collapsed by default |
@@ -291,7 +292,7 @@ const initialState: AppState = {
 ```
 
 **Reducer cases:**
-- `DISMISS_WELCOME`: Sets `welcomeDismissed: true`
+- `DISMISS_WELCOME`: Sets `welcomeDismissed: true` for the current app session; resets to false on page reload (new app session) due to no persistent storage (Section 2.4 Non-Goal #2).
 - `SET_DURATION`: Updates `sessionConfig.durationMinutes`; ignored if `isSessionActive: true`
 - `SET_POINTS_PER_MINUTE`: Updates `sessionConfig.pointsPerMinute`; ignored if `isSessionActive: true`
 - `START_SESSION`: Sets `isSessionActive: true`, `sessionStartTime: new Date()`
