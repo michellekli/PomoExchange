@@ -6,7 +6,7 @@ PomoExchange addresses the challenge of sustaining focus in a world with increas
 
 Unlike passive time-tracking apps, PomoExchange replaces the mandatory break structure and gamifies time blocking with optional earned rewards to turn passive breaks into earned reward activities. Users stay focused to earn points, which they can redeem for reward activities like quick walks or stretches.
 
-PomoExchange intentionally defaults to a tighter focus-to-reward ratio than traditional Pomodoro (4:1 vs 3.33:1), encouraging sustained focus beyond the standard 25-minute blocks. Rather than mandating breaks, users choose when and how to spend their earned reward time.
+PomoExchange intentionally defaults to a tighter focus-to-reward ratio than traditional Pomodoro (4:1 vs 3.33:1), encouraging more time spent focusing while providing flexibility on when to take breaks. Rather than mandating breaks, users choose when and how to spend their earned reward time.
 
 ## 2. Requirements & Goals
 
@@ -34,9 +34,9 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
 
 4. Reward System
    - Three predefined reward tiers:
-     - Small: 5 minutes (suggestions: stretching, getting a snack, getting up and walking around)
-     - Medium: 10 minutes (suggestions: walking outside, a quick workout, a short YouTube video)
-     - Large: 15 minutes (suggestions: watching half a TV show, a quick nap)
+     - Small: 5 minutes (suggestions: Stretching, Get a snack, Walk around)
+     - Medium: 10 minutes (suggestions: Walk outside, Quick workout, YouTube video)
+     - Large: 15 minutes (suggestions: Watching half a TV show, Quick nap)
    - Each tier displays suggested duration and example activities
    - User self-selects how to reward themselves within the chosen tier
    - Reward costs:
@@ -48,7 +48,7 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
    - Focus session history for the current app session is viewable through Home Screen after first focus session
    - Reward history for the current app session is visible on Home Screen after first reward redemption
 
-5. Intentionally default to a 4:1 focus-to-reward ratio to encourage sustained focus beyond traditional Pomodoro. Comparisons are normalized to 100 minutes of focus (equivalent to 4 traditional Pomodoros):
+5. Intentionally default to a 4:1 focus-to-reward ratio to encourage more time spent focusing than traditional Pomodoro. Comparisons are normalized to 100 minutes of focus (equivalent to 4 traditional Pomodoros):
    - Traditional Pomodoro: 4 × 25 min = 100 min focus. Breaks = 3 × 5 min short + 1 long break (15–30 min) = 30–45 min total break → ratio 3.33:1 to 2.22:1
    - PomoExchange: 100 min focus × 0.05 pts/min = 5 points = 25 min total reward time → ratio 4:1
    
@@ -133,6 +133,7 @@ flowchart TD
 | Category | Details |
 |----------|---------|
 | **State** | All state lost on page close/reload<br/>Points deducted on redemption<br/>No backend storage<br/>Client-side only |
+| **Welcome Dismissal** | WelcomeDialog dismissal is scoped to the current app session only; no cross-session persistence per Non-Goal #2. |
 | **Screen States** | HomeExtended includes all HomeBase functionality (duration and pointsPerMinute configuration) plus points display, reward catalog, and focus session history; reward history appears conditionally after the first reward redemption<br/>Home screen transitions from Base to Extended after first focus session |
 | **Rewards** | Rewards require points to redeem<br/>Points deducted upon confirmation<br/>Reward history updated after redemption |
 | **Affordability** | Checked at catalog display<br/>Only affordable rewards selectable<br/>No error screen needed |
@@ -153,7 +154,7 @@ flowchart TD
 | Build Tool | Vite | TBD | Fast HMR, optimized for React |
 | CSS Framework | Tailwind CSS | TBD | Utility-first, consistent styling |
 | Language | TypeScript | TBD | Type safety, better IDE support |
-| Testing | Vitest | TBD | Fast, ESM-first, React integration |
+| Testing | Vitest (Browser Mode) | TBD | Fast, ESM-first, runs tests in real browsers |
 | Deployment | GitHub Pages | - | Static hosting, free |
 
 ### 3.3 State Management Strategy
@@ -173,7 +174,7 @@ flowchart TD
 ```
 App
 ├── HomeScreen
-│   ├── WelcomeDialog (conditional: shown on first visit)
+│   ├── WelcomeDialog (conditional: shown on initial page load of each app session per Section 2.5)
 │   ├── SessionConfig (duration input, points/minute selector)
 │   ├── PointsDisplay
 │   ├── FocusHistorySection
@@ -195,7 +196,7 @@ App
 
 | Component | Responsibility |
 |-----------|---------------|
-| `WelcomeDialog` | Shown once on first load; explains time → points → rewards flow |
+| `WelcomeDialog` | Shown once per app session (on initial page load of each app session per Section 2.5); explains time → points → rewards flow. Resets to un-dismissed on page reload/navigation away per Section 2.2 NFR #2 (no persistent storage). |
 | `SessionConfig` | Duration input (minutes) and points/minute slider/input; disabled during active session. Contains "Start Focus Session" button. Conditionally renders a persistent inline cap warning near the Start button when `state.pointsBalance >= 10000`: *"You've reached the 10,000 points cap! Focus sessions will earn 0 points until you redeem rewards."* |
 | `PointsDisplay` | Shows current point balance; hidden until first session completed |
 | `FocusHistorySection` | Expandable section for focus history; collapsed by default |
@@ -291,11 +292,11 @@ const initialState: AppState = {
 ```
 
 **Reducer cases:**
-- `DISMISS_WELCOME`: Sets `welcomeDismissed: true`
+- `DISMISS_WELCOME`: Sets `welcomeDismissed: true` for the current app session; resets to false on page reload (new app session) due to no persistent storage (Section 2.4 Non-Goal #2).
 - `SET_DURATION`: Updates `sessionConfig.durationMinutes`; ignored if `isSessionActive: true`
 - `SET_POINTS_PER_MINUTE`: Updates `sessionConfig.pointsPerMinute`; ignored if `isSessionActive: true`
 - `START_SESSION`: Sets `isSessionActive: true`, `sessionStartTime: new Date()`
-- `END_SESSION`: Calculates `elapsedMinutes` as (session end time - `sessionStartTime`) in minutes (retain fractional values). Calculates points as `elapsedMinutes * state.sessionConfig.pointsPerMinute`, caps total points at 10,000. Appends new `FocusSession` entry with `elapsedMinutes` set to the calculated value and `pointsEarned` set to the capped points value. Sets `isSessionActive: false`, `sessionStartTime: null`.
+- `END_SESSION`: Calculates `elapsedMinutes` as (session end time - `sessionStartTime`) in minutes (retain fractional values). Calculates `pointsEarned` as `elapsedMinutes * state.sessionConfig.pointsPerMinute`, capped to ensure `state.pointsBalance + pointsEarned` does not exceed `POINTS_CAP` (10,000) per Section 2.1. Appends new `FocusSession` entry with `elapsedMinutes` set to the calculated value and `pointsEarned` set to the capped value. Sets `isSessionActive: false`, `sessionStartTime: null`. (Matches Section 4.6 algorithm)
 - `REDEEM_REWARD`: Checks affordability, deducts points, appends to `rewardHistory`
 
 ### 4.5 Screen Layouts
@@ -342,7 +343,7 @@ isAffordable = state.pointsBalance >= REWARD_TIERS[tier].cost
 
 | Route | Component | Notes |
 |-------|-----------|-------|
-| `/` | HomeScreen | Default route; shows WelcomeDialog if first visit |
+| `/` | HomeScreen | Default route; shows WelcomeDialog on initial page load of each app session per Section 2.5; dismissed state resets on page reload per Section 2.2 NFR #2 |
 | `/timer` | ProtectedRoute → TimerScreen | Active focus session only; wrapped with `ProtectedRoute` that redirects to `/` if `!isSessionActive` |
 
 ## 5. Alternatives Considered
@@ -365,3 +366,93 @@ I evaluated the following alternatives to the chosen design and technical decisi
 | Focus-to-Reward Ratio | Traditional Pomodoro 3.33:1 (100min focus / 30min break for 4 Pomodoros including long break) | Familiar to existing Pomodoro users | Passive mandatory breaks instead of earned rewards, less incentive for sustained focus | Project goal is to encourage longer focus sessions via 4:1 earned reward ratio |
 | Authentication | Optional user accounts for cross-device sync | Cross-device progress tracking | Violates Non-Goal #1, requires backend/storage infrastructure | App is explicitly client-only with no backend or user accounts |
 | Reward Redemption | No points deduction (unlimited redemptions) | Higher initial user engagement | Breaks earn-spend gamification loop, no incentive to earn more points | Points deduction is critical to the core gamification value proposition |
+
+## 6. Implementation Plan
+
+### 6.1 TDD Approach
+This plan follows Test-Driven Development (TDD) principles with a mandatory red-green-refactor cycle for all feature work:
+1. **Red**: Write failing unit/component tests for the target functionality first
+2. **Green**: Implement minimal code to make tests pass
+3. **Refactor**: Clean up code while keeping tests passing
+No batched testing phase: tests are written alongside corresponding feature code, not deferred to the end of the project.
+
+### 6.2 Timeline & Milestones
+| Milestone | Description | Estimated Duration | Dependencies |
+|-----------|-------------|-------------------|--------------|
+| M1: Project Scaffolding & Test Setup | Initialize React Router + TypeScript project (scaffolded via `create-react-router`, uses Vite under the hood), configure Tailwind CSS, set up Vitest browser mode, create base folder structure per Component Hierarchy (Section 4.1), define core types (Section 4.3) | 2-3 days | None |
+| M2: Core Focus Session Logic (TDD) | Write tests first for state reducer, points calculation, session lifecycle; implement TimerScreen, SessionConfig, ProtectedRoute to pass tests | 4-5 days | M1 |
+| M3: Points & Reward System (TDD) | Write tests first for reward redemption, affordability checks, history components; implement PointsDisplay, RewardCatalog, RewardHistoryBar, FocusHistorySection to pass tests | 4-5 days | M2 |
+| M4: Onboarding & UI Polish (TDD) | Write tests first for WelcomeDialog, responsive layouts, animations; implement UI polish to pass tests | 3-4 days | M3 |
+| M5: Deployment & Final QA | Run full test suite, configure GitHub Pages deployment, perform cross-browser/device QA, verify all requirements met | 2-3 days | M4 |
+
+### 6.3 Build Phase Details
+#### M1: Project Scaffolding & Test Setup
+- Scaffold project with `npx create-react-router@latest` (select TypeScript and Vite options when prompted)
+- Install dependencies: `tailwindcss`, `postcss`, `autoprefixer`
+- Set up Vitest browser mode: Run `npx vitest init browser` (automatically installs `@vitest/browser`, Playwright browser provider, and configures `vitest.config.ts` for browser-mode testing)
+- Define core types (`AppState`, `AppAction`, `FocusSession`, `RewardRedemption`) per Section 4.3, 4.4
+- Create folder structure: `src/components/`, `src/context/`, `src/routes/`, `src/__tests__/`
+- Write initial smoke tests to verify project setup (React renders, router works) using Vitest browser mode
+
+#### M2: Core Focus Session Logic (TDD)
+TDD cycle for each sub-task:
+1. **Reducer & State Logic**
+   - Red: Write failing tests for `AppStateContext` reducer cases: `START_SESSION`, `END_SESSION`, points calculation (Section 4.4, 4.6), points cap logic
+   - Green: Implement reducer and context to pass all tests
+   - Refactor: Optimize state logic if needed, keep tests passing
+2. **Timer & Session Components**
+   - Red: Write failing Vitest browser mode component tests for `TimerScreen`, `TimerDisplay`, `EndSessionButton`, `ProtectedRoute` (Section 4.1, 4.2, 4.7)
+   - Green: Implement components to pass tests
+   - Refactor: Clean up component code, keep tests passing
+3. **Session Config**
+   - Red: Write failing tests for `SessionConfig` input handling, points cap warning (Section 4.2, 4.5)
+   - Green: Implement `SessionConfig` to pass tests
+   - Refactor: Clean up as needed
+
+#### M3: Points & Reward System (TDD)
+TDD cycle for each sub-task:
+1. **Points & History Display**
+   - Red: Write failing Vitest browser mode tests for `PointsDisplay`, `FocusHistorySection`, `FocusSessionItem` (Section 4.2)
+   - Green: Implement components to pass tests
+   - Refactor: Clean up as needed
+2. **Reward System**
+   - Red: Write failing Vitest browser mode tests for `RewardCatalog`, `RewardTierCard`, affordability checks (Section 4.2, 4.6), `RewardConfirmationModal` points deduction
+   - Green: Implement components to pass tests
+   - Refactor: Clean up as needed
+3. **Reward History**
+   - Red: Write failing Vitest browser mode tests for `RewardHistoryBar`, `RewardShape` interactions (Section 4.2)
+   - Green: Implement components to pass tests
+   - Refactor: Clean up as needed
+
+#### M4: Onboarding & UI Polish (TDD)
+TDD cycle for each sub-task:
+1. **Onboarding**
+   - Red: Write failing Vitest browser mode tests for `WelcomeDialog` rendering, dismiss logic (Section 4.2)
+   - Green: Implement `WelcomeDialog` to pass tests
+   - Refactor: Clean up as needed
+2. **Responsive & UI Polish**
+   - Red: Write failing Vitest browser mode tests for responsive reward grid (Section 4.5), minimal animations, distraction-free `TimerScreen` (Section 2.2 NFR)
+   - Green: Implement UI polish to pass tests
+   - Refactor: Clean up as needed
+
+#### M5: Deployment & Final QA
+- Run full Vitest test suite, verify coverage ≥ 80% for reducer logic and core algorithms
+- Configure GitHub Pages deployment via `vite.config.ts` base path
+- Perform cross-browser/device QA (latest Chrome, Firefox, Safari desktop/mobile)
+- Verify all Functional Requirements (Section 2.1) and Non-Functional Requirements (Section 2.2) are met
+- No new test writing in this phase; only validate existing tests and deployment
+
+### 6.4 Dependencies & Risks
+- **TBD Tech Versions**: Finalize React, React Router, Tailwind, Vitest versions (marked TBD in Section 3.2) before M1 to avoid compatibility issues
+- **No Backend**: All state is client-side only (Section 2.4 Non-Goal #2), no external state dependencies
+- **Browser Compatibility**: Validate Tailwind, React, and Vitest browser mode features work on target browsers (latest version of major browsers)
+- **TDD Adoption**: Strictly follow red-green-refactor cycle; avoid skipping tests for UI components
+
+### 6.5 Success Criteria
+- TDD red-green-refactor cycle followed for all feature milestones (M2-M4)
+- All Functional Requirements (Section 2.1) implemented and verified via tests
+- All Non-Functional Requirements (Section 2.2) met
+- Vitest browser mode test coverage ≥ 80% for reducer logic, core algorithms, and critical components
+- Successful production build with no console errors/warnings
+- Public GitHub Pages deployment passes all QA checks
+- No standalone testing phase; all tests written alongside corresponding feature code
