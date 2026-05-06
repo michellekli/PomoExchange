@@ -154,7 +154,7 @@ flowchart TD
 | Build Tool | Vite | TBD | Fast HMR, optimized for React |
 | CSS Framework | Tailwind CSS | TBD | Utility-first, consistent styling |
 | Language | TypeScript | TBD | Type safety, better IDE support |
-| Testing | Vitest (Browser Mode) | TBD | Fast, ESM-first, runs tests in real browsers via `npx vitest init browser` |
+| Testing | Vitest (Browser Mode) | TBD | Fast, ESM-first, runs tests in real browsers |
 | Deployment | GitHub Pages | - | Static hosting, free |
 
 ### 3.3 State Management Strategy
