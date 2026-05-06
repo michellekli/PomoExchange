@@ -296,7 +296,7 @@ const initialState: AppState = {
 - `SET_DURATION`: Updates `sessionConfig.durationMinutes`; ignored if `isSessionActive: true`
 - `SET_POINTS_PER_MINUTE`: Updates `sessionConfig.pointsPerMinute`; ignored if `isSessionActive: true`
 - `START_SESSION`: Sets `isSessionActive: true`, `sessionStartTime: new Date()`
-- `END_SESSION`: Calculates `elapsedMinutes` as (session end time - `sessionStartTime`) in minutes (retain fractional values). Calculates points as `elapsedMinutes * state.sessionConfig.pointsPerMinute`, caps total points at 10,000. Appends new `FocusSession` entry with `elapsedMinutes` set to the calculated value and `pointsEarned` set to the capped points value. Sets `isSessionActive: false`, `sessionStartTime: null`.
+- `END_SESSION`: Calculates `elapsedMinutes` as (session end time - `sessionStartTime`) in minutes (retain fractional values). Calculates `pointsEarned` as `elapsedMinutes * state.sessionConfig.pointsPerMinute`, capped to ensure `state.pointsBalance + pointsEarned` does not exceed `POINTS_CAP` (10,000) per Section 2.1. Appends new `FocusSession` entry with `elapsedMinutes` set to the calculated value and `pointsEarned` set to the capped value. Sets `isSessionActive: false`, `sessionStartTime: null`. (Matches Section 4.6 algorithm)
 - `REDEEM_REWARD`: Checks affordability, deducts points, appends to `rewardHistory`
 
 ### 4.5 Screen Layouts
