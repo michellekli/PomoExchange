@@ -571,11 +571,19 @@ Maps to key Functional Requirements (Section 2.1). Test placement follows the De
     - `ProtectedRoute`: Verify redirect to `/` when `!isSessionActive` (Section 4.7). Accessibility: Run `runAxe(page)` on redirect → assert 0 violations.
     - `SessionConfig`: Verify points cap warning displays when `pointsBalance >= 10000` (FR3). Accessibility: Run `runAxe(page)` → assert 0 violations.
     - `WelcomeDialog`: Verify renders on initial app session load; hidden after dismiss click, `welcomeDismissed=true`; no re-render after dismiss within same session; resets on page reload (new app session). Accessibility: Run `runAxe(page)` when open → assert 0 violations; validate dismiss button accessible name via `page.getAttribute('[role="button"]', 'aria-label')`.
+    > **Note**: No test for page reload reset behavior: `welcomeDismissed` state is never persisted (Section 2.4 Non-Goal #2), so reload inherently resets to un-dismissed. No test required.
     - `RewardConfirmationModal`: Verify renders when selecting affordable reward; deducts points on confirm. Accessibility: Run `runAxe(page)` when open → assert 0 violations; verify focus trap stays in modal.
     - `RewardShape`: Verify hover reveals redemption details (timestamp, tier, cost), tap interaction on mobile, correct `data-testid="reward-shape"` and `aria-label` attributes (Section 4.2). Accessibility: Run `runAxe(page)` in default/hover states → assert 0 violations.
-    - **Mobile-Specific Component Tests (Tier 3)**:
-      - `RewardCatalog` (mobile): Set viewport to 390x844 → verify grid switches from 3-column to single-column (assert Tailwind `grid-cols-1` class or computed style); tap reward tier card → verify suggestions display (no hover trigger); tap again → verify suggestions hide.
-      - `WelcomeDialog` (mobile): Set viewport to 390x844 → verify no horizontal overflow (assert `document.body.scrollWidth <= 390`); verify dismiss button meets WCAG touch target size (≥44x44px via `getBoundingClientRect()`); verify text content is not truncated (assert element `scrollWidth === offsetWidth`).
+     - **Touch Target Compliance (WCAG 2.1 AA)**: For all Tier 3 interactive components, set viewport to 390x844 (iPhone 12 baseline) and assert interactive elements have `getBoundingClientRect()` width ≥44px && height ≥44px:
+       - `SessionConfig`: Start Focus Session button, duration input, points/minute input
+       - `EndSessionButton`: End Session button
+       - `RewardTierCard`: Selectable reward card
+       - `RewardConfirmationModal`: Confirm/Cancel buttons
+       - `FocusHistoryHeader`: Expand/collapse toggle
+       - `RewardShape`: Tap target
+     - **Mobile-Specific Component Tests (Tier 3)**:
+       - `RewardCatalog` (mobile): Set viewport to 390x844 → verify grid switches from 3-column to single-column (assert Tailwind `grid-cols-1` class or computed style); tap reward tier card → verify suggestions display (no hover trigger); tap again → verify suggestions hide.
+       - `WelcomeDialog` (mobile): Set viewport to 390x844 → verify no horizontal overflow (assert `document.body.scrollWidth <= 390`); verify dismiss button meets WCAG touch target size (≥44x44px via `getBoundingClientRect()`); verify text content is not truncated (assert element `scrollWidth === offsetWidth`).
 
 **Edge Case Tests (Tier 3 - Unit/Component)**:
 - Verify `END_SESSION` awards 0 points when `pointsBalance = 10000` (FR3) — use fixed 25-minute session via payload times
@@ -600,8 +608,23 @@ Maps to key Functional Requirements (Section 2.1). Test placement follows the De
     - **FocusSessionItem** (Tier 2): Validate all session history entries display correct elapsed minutes and points earned, matching `AppState.focusSessions` order (Section 4.2, 4.3). Validate `aria-label` format via `page.getAttribute('[data-testid="focus-session-item"]', 'aria-label')` (per Exclusive Scope Principle: no `runAxe()` here, covered in component tests if reclassified).
      - **TimerDisplay** (Tier 2): Verify initial time matches configured duration in `MM:SS` format; no elapsed time/decrease checks per user clarification (Section 4.2). Validate `aria-label="Time remaining: ${mm}:${ss}"` via `page.getAttribute('[data-testid="timer-display"]', 'aria-label')`.
      - **Mobile Viewport Integration Tests** (390x844):
-      - Onboarding flow (mobile): Set viewport to 390x844 → verify `WelcomeDialog` renders correctly, dismiss works, redirects to Home Screen Base.
-      - Reward redemption flow (mobile): Set viewport to 390x844 → tap affordable reward tier → verify `RewardConfirmationModal` opens (tap trigger, no click hover).
+       - Onboarding flow (mobile): Set viewport to 390x844 → verify `WelcomeDialog` renders correctly, dismiss works, redirects to Home Screen Base.
+       - Reward redemption flow (mobile): Set viewport to 390x844 → tap affordable reward tier → verify `RewardConfirmationModal` opens (tap trigger, no click hover).
+     - **ProtectedRoute Browser Navigation Tests** (`src/__tests__/protected-route-navigation.test.ts`):
+       - Direct URL access + browser back: `page.goto('/timer')` → assert redirect to `/` → `page.goBack()` → assert still on `/`.
+       - Browser forward after redirect: `page.goto('/timer')` → redirect to `/` → `page.goForward()` → assert still on `/`.
+       - Active session + end session + browser back: Start session → `page.goto('/timer')` → assert on `/timer` → end session → `page.goBack()` → assert on `/`.
+       - Post-session direct URL access: Start + end session → `page.goto('/timer')` → assert redirect to `/`, points unchanged.
+       - Accessibility: `runAxe(page)` → 0 violations at all navigation states.
+     - **Integration Test State Reset Rule**: All `src/__tests__/*` files must include:
+       ```typescript
+       beforeEach(() => {
+         render(<App />);
+         vi.useRealTimers();
+       });
+       ```
+       Resets `AppStateContext` to initial state (Section 4.4) between tests to prevent cross-test state contamination (e.g., stale `pointsBalance`, `welcomeDismissed`, `isSessionActive`).
+     - **Tier 2 Touch Target Compliance (Integration Tests)**: For `TimerDisplay` and `FocusSessionItem`, set viewport to 390x844 in integration flows, assert interactive parent elements (if any) have `getBoundingClientRect()` width ≥44px && height ≥44px.
 
 **Deterministic Timing Strategy for Tests**:
 - **Unit/Reducer tests**: Use fixed payload times in `START_SESSION` and `END_SESSION` actions (e.g., `new Date('2026-05-06T10:00:00Z')`, `new Date('2026-05-06T10:25:00Z')`) to calculate exact `elapsedMinutes`.
