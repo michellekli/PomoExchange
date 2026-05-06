@@ -174,7 +174,7 @@ flowchart TD
 ```
 App
 ├── HomeScreen
-│   ├── WelcomeDialog (conditional: shown on first visit)
+│   ├── WelcomeDialog (conditional: shown on initial page load of each app session per Section 2.5)
 │   ├── SessionConfig (duration input, points/minute selector)
 │   ├── PointsDisplay
 │   ├── FocusHistorySection
@@ -343,7 +343,7 @@ isAffordable = state.pointsBalance >= REWARD_TIERS[tier].cost
 
 | Route | Component | Notes |
 |-------|-----------|-------|
-| `/` | HomeScreen | Default route; shows WelcomeDialog if first visit |
+| `/` | HomeScreen | Default route; shows WelcomeDialog on initial page load of each app session per Section 2.5; dismissed state resets on page reload per Section 2.2 NFR #2 |
 | `/timer` | ProtectedRoute → TimerScreen | Active focus session only; wrapped with `ProtectedRoute` that redirects to `/` if `!isSessionActive` |
 
 ## 5. Alternatives Considered
