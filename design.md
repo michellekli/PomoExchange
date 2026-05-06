@@ -482,7 +482,7 @@ Components are classified into three tiers based on testing needs:
 | Tier | Criteria | Testing Approach | Examples |
 |------|----------|------------------|----------|
 | **Tier 1: Pure Presentational** | No business logic, no data transformation, no user interactions, no state changes | **No tests** (excluded entirely) | Simple icon components, static divs with Tailwind classes |
-| **Tier 2: Data Display** | Renders data passed via props, has `data-testid`/`aria-label` for accessibility, no user interactions or state changes | **Integration tests ONLY** — verify rendering + data accuracy in flow tests; no dedicated component tests | `TimerDisplay`, `RewardShape`, `FocusSessionItem` |
+| **Tier 2: Data Display** | Renders data passed via props, has `data-testid`/`aria-label` for accessibility, no user interactions or state changes | **Integration tests ONLY** — verify rendering + data accuracy in flow tests; no dedicated component tests | `TimerDisplay`, `FocusSessionItem` |
 | **Tier 3: Business Logic** | Contains user interactions, conditional rendering based on state, calculations, or route protection | **Full testing** — unit/component tests + integration tests | `RewardCatalog`, `SessionConfig`, `ProtectedRoute`, reducer |
 
 #### Classified Components (Section 4.2):
@@ -598,9 +598,8 @@ Maps to key Functional Requirements (Section 2.1). Test placement follows the De
     - Full focus session flow: Verify `TimerScreen`, `TimerDisplay`, `EndSessionButton` are rendered during active session (Section 3.1). Accessibility: Run `runAxe(page)` on Home Screen (Base/Extended) and Timer Screen → assert 0 violations. **Deterministic timing**: Use Vitest fake timers (`vi.useFakeTimers()`) to set start time, advance by exact duration, dispatch actions with fixed payload times.
     - Reward redemption flow: Verify `RewardConfirmationModal` renders when selecting an affordable reward (Section 3.1). Accessibility: Run `runAxe(page)` after modal opens → assert 0 violations.
     - **FocusSessionItem** (Tier 2): Validate all session history entries display correct elapsed minutes and points earned, matching `AppState.focusSessions` order (Section 4.2, 4.3). Validate `aria-label` format via `page.getAttribute('[data-testid="focus-session-item"]', 'aria-label')` (per Exclusive Scope Principle: no `runAxe()` here, covered in component tests if reclassified).
-    - **TimerDisplay** (Tier 2): Verify initial time matches configured duration in `MM:SS` format; no elapsed time/decrease checks per user clarification (Section 4.2). Validate `aria-label="Time remaining: ${mm}:${ss}"` via `page.getAttribute('[data-testid="timer-display"]', 'aria-label')`.
-    - **RewardShape** (Tier 3): Verify presence in `RewardHistoryBar` during redemption flows; attribute validation covered in component tests per Exclusive Scope Principle (Section 4.2, 7.2). Validate `data-tier` attribute via `page.getAttribute('[data-testid="reward-shape"]', 'data-tier')`.
-    - **Mobile Viewport Integration Tests** (390x844):
+     - **TimerDisplay** (Tier 2): Verify initial time matches configured duration in `MM:SS` format; no elapsed time/decrease checks per user clarification (Section 4.2). Validate `aria-label="Time remaining: ${mm}:${ss}"` via `page.getAttribute('[data-testid="timer-display"]', 'aria-label')`.
+     - **Mobile Viewport Integration Tests** (390x844):
       - Onboarding flow (mobile): Set viewport to 390x844 → verify `WelcomeDialog` renders correctly, dismiss works, redirects to Home Screen Base.
       - Reward redemption flow (mobile): Set viewport to 390x844 → tap affordable reward tier → verify `RewardConfirmationModal` opens (tap trigger, no click hover).
 
