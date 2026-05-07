@@ -172,181 +172,112 @@ flowchart TD
 
 ## 4. Detailed Design
 
-### 4.1 Component Hierarchy
+### 4.1 Screen Hierarchy
 
-```
-App
-├── HomeScreen
-│   ├── WelcomeDialog (conditional: shown on initial page load of each app session per Section 2.5)
-│   ├── SessionConfig (duration input, points/minute selector)
-│   ├── PointsCelebrationOverlay (conditional: shown after session ends)
-│   ├── PointsDisplay
-│   ├── FocusHistorySection
-│   │   ├── FocusHistoryHeader (expand/collapse toggle)
-│   │   └── FocusHistoryList (collapsible)
-│   │       └── FocusSessionItem
-│   ├── RewardHistoryBar
-│   │   └── RewardShape
-│   └── RewardCatalog
-│       ├── RewardTierCard (Small, Medium, Large)
-│       └── RewardConfirmationModal
-└── ProtectedRoute
-    └── TimerScreen
-        ├── TimerDisplay
-        └── EndSessionButton
-```
+The app has two screens: **Home** and **Timer**.
 
-### 4.2 Component Responsibilities
+**Home screen** contains:
+- Onboarding explanation (shown on first load only of each app session)
+- Session configuration (duration, points per minute, start action)
+- Points display (hidden until first session)
+- Reward catalog (three predefined tiers: Small / Medium / Large)
+- Reward history bar (hidden until first redemption)
+- Focus history list (hidden until first session)
 
-| Component | Responsibility |
-|-----------|---------------|
-| `WelcomeDialog` | Explains time→points→rewards flow. Shown once per app session; resets on reload. |
-| `SessionConfig` | Duration input, points numerator/denominator, Start button, cap warning. Disabled during active session. |
-| `PointsDisplay` | Shows current point balance. Hidden until first session. |
-| `FocusHistorySection` | Expandable container for focus history; collapsed by default. |
-| `FocusHistoryHeader` | Section title with expand/collapse toggle. |
-| `FocusHistoryList` | Renders list of completed sessions for current app session. |
-| `FocusSessionItem` | Single session entry: elapsed minutes and points earned. |
-| `RewardHistoryBar` | Inline row of tier-differentiated shapes. Hidden until first redemption. |
-| `RewardShape` | Triangle/square/pentagon. Hover/tap reveals timestamp, tier, cost. |
-| `RewardCatalog` | Lists three tiers; disables unaffordable rewards. |
-| `RewardTierCard` | Displays tier name, duration, cost, example activities. |
-| `RewardConfirmationModal` | Confirmation overlay before deducting points. |
-| `TimerScreen` | Countdown timer with progress indicator; handles session end. |
-| `TimerDisplay` | Large time-remaining display with progress indicator. |
-| `EndSessionButton` | Ends session early or at completion; triggers points calculation. |
-| `PointsCelebrationOverlay` | Displays congratulations, animated points count, and celebratory effect. Auto-dismisses after a brief timeout. |
-| `ProtectedRoute` | Redirects `/timer` to `/` when no active session. Ends the active session when the user navigates away from `/timer`. |
+**Timer screen** contains:
+- Time remaining display with progress indicator
+- End session action
+- Redirects to Home when no active session; ending session on navigation away
 
-### 4.3 Data Types
+### 4.2 Screen Section Responsibilities
 
-```typescript
-type RewardTier = 'small' | 'medium' | 'large';
+| Section | Responsibility |
+|---------|---------------|
+| Onboarding explanation | Explains time→points→rewards flow. Shown once per app session; resets on reload. |
+| Session configuration | Duration input, points numerator/denominator, start action, cap warning. Disabled during active session. |
+| Points display | Shows current point balance. Hidden until first session. |
+| Focus history | Expandable list of completed sessions for current app session; collapsed by default. Each entry shows elapsed minutes and points earned. |
+| Reward history bar | Inline row of tier-differentiated shapes. Hidden until first redemption. Hover/tap reveals timestamp, tier, cost. Scoped to current session only. |
+| Reward catalog | Lists three tiers with duration, cost, and example activities. Unaffordable rewards are disabled with "Need X more points" message. Selecting an affordable reward shows a confirmation step before deducting points. |
+| Timer | Countdown timer with progress indicator. End action triggers points calculation. |
+| Points celebration | Full-screen overlay showing points earned with celebratory animation. Auto-dismisses after a brief timeout. |
 
-interface FocusSession {
-  id: string;
-  elapsedMinutes: number;
-  pointsEarned: number;
-  endedAt: Date;
-}
+### 4.3 Data Concepts
 
-interface RewardRedemption {
-  id: string;
-  tier: RewardTier;
-  pointsCost: number;
-  redeemedAt: Date;
-}
+**FocusSession**: elapsed minutes, points earned, timestamp
 
-interface AppState {
-  pointsBalance: number;
-  focusSessions: FocusSession[];
-  rewardHistory: RewardRedemption[];
-  lastSessionPointsEarned: number | null;
-  isSessionActive: boolean;
-  sessionStartTime: Date | null;
-  sessionConfig: {
-    durationMinutes: number;
-    pointsNumerator: number;
-    pointsDenominator: number;
-  };
-  welcomeDismissed: boolean;
-}
+**RewardRedemption**: tier redeemed, points cost, timestamp
 
-const POINTS_CAP = 10000;
-const DEFAULT_POINTS_NUMERATOR = 1;
-const DEFAULT_POINTS_DENOMINATOR = 20;
+**App state**:
+- points balance
+- list of past focus sessions
+- list of past reward redemptions
+- last session's points earned (cleared after celebration dismissed)
+- whether a focus session is currently active, with its start time
+- session configuration: duration minutes, points numerator, points denominator
+- whether the welcome onboarding has been dismissed this app session
 
-const REWARD_TIERS = {
-  small:  { duration: 5,  cost: 1, suggestions: ['Stretching', 'Get a snack', 'Walk around'] },
-  medium: { duration: 10, cost: 2, suggestions: ['Walk outside', 'Quick workout', 'YouTube video'] },
-  large:  { duration: 15, cost: 3, suggestions: ['Watching half a TV show', 'Quick nap'] },
-} as const;
-```
+**Constants**:
+- Points cap: 10,000
+- Default points rate: 1/20 per minute (numerator=1, denominator=20)
+- Numerator range: 1–3
+- Denominator range: 1–75
+- Three reward tiers:
 
-### 4.4 State Management
+| Tier | Duration | Cost (points) | Example suggestions |
+|------|----------|---------------|--------------------|
+| Small | 5 min | 1 | Stretching, Get a snack, Walk around |
+| Medium | 10 min | 2 | Walk outside, Quick workout, YouTube video |
+| Large | 15 min | 3 | Watching half a TV show, Quick nap |
 
-**Context structure:**
+### 4.4 State Transitions
 
-```typescript
-interface AppStateContextValue {
-  state: AppState;
-  dispatch: React.Dispatch<AppAction>;
-}
+All state is held in memory and lost on page close/reload.
 
-type AppAction =
-  | { type: 'DISMISS_WELCOME' }
-  | { type: 'SET_DURATION'; payload: number }
-  | { type: 'SET_POINTS_NUMERATOR'; payload: number }
-  | { type: 'SET_POINTS_DENOMINATOR'; payload: number }
-  | { type: 'START_SESSION'; payload?: { startTime?: Date } }
-  | { type: 'END_SESSION'; payload?: { endTime?: Date } }
-  | { type: 'REDEEM_REWARD'; payload: { tier: RewardTier } }
-  | { type: 'DISMISS_CELEBRATION' };
-```
-
-**Initial state:**
-
-```typescript
-const initialState: AppState = {
-  pointsBalance: 0,
-  focusSessions: [],
-  rewardHistory: [],
-  isSessionActive: false,
-  sessionStartTime: null,
-  sessionConfig: {
-    durationMinutes: 25,
-    pointsNumerator: DEFAULT_POINTS_NUMERATOR,
-    pointsDenominator: DEFAULT_POINTS_DENOMINATOR,
-  },
-  welcomeDismissed: false,
-  lastSessionPointsEarned: null,
-};
-```
-
-**Reducer cases:**
-
-| Action | Effect |
-|--------|--------|
-| `DISMISS_WELCOME` | Sets `welcomeDismissed: true` |
-| `SET_DURATION` / `SET_POINTS_NUMERATOR` / `SET_POINTS_DENOMINATOR` | Updates config; ignored when `isSessionActive` |
-| `START_SESSION` | Sets `isSessionActive: true`, records start time |
-| `END_SESSION` | Calculates points per §4.6, enforces cap, sets `lastSessionPointsEarned`, appends to history, resets session state |
-| `REDEEM_REWARD` | Deducts points if affordable, appends to `rewardHistory` |
-| `DISMISS_CELEBRATION` | Clears `lastSessionPointsEarned` to `null` |
+| Trigger | Effect |
+|---------|--------|
+| Dismiss welcome | Welcome no longer shown for remainder of app session |
+| Change duration | Duration updated; ignored during active session |
+| Change numerator | Points numerator updated; ignored during active session |
+| Change denominator | Points denominator updated; ignored during active session |
+| Start session | Session becomes active; start time recorded |
+| End session | Points calculated from elapsed time (capped at 10,000 total balance), added to balance; session appended to history; session deactivated |
+| Redeem reward | Points deducted if balance ≥ cost; redemption appended to history |
+| Dismiss celebration | Clears last session points earned |
 
 ### 4.5 Screen Layouts
 
 | Screen | Key Elements | Notes |
 |--------|-------------|-------|
-| Home (Base) | Duration input, Points Numerator/Denominator, Start button, cap warning | Shown before first session |
-| Home (Extended) | Points balance, reward catalog, conditional reward history bar, collapsible focus history | After first session |
-| Timer | Full-screen, MM:SS countdown, progress indicator, End button | Route-protected |
-| Points Celebration | Full-screen backdrop, centered card with point total and congratulations | Overlaid on HomeExtended; auto-dismisses |
+| Home (Base) | Duration input, points numerator/denominator, start action, cap warning | Shown before first session |
+| Home (Extended) | Points balance, reward catalog, reward history bar, collapsible focus history | After first session |
+| Timer | Full-screen, MM:SS countdown, progress indicator, end action | Redirects to Home when no active session |
+| Points celebration | Full-screen backdrop, centered card with point total and congratulations | Overlaid on Home Extended; auto-dismisses |
 
 ### 4.6 Key Algorithms
 
 **Points calculation:**
-Derived `pointsPerMinute = state.sessionConfig.pointsNumerator / state.sessionConfig.pointsDenominator` (denominator ≥1 enforced by input min=1)
 ```
-pointsEarned = min(elapsedMinutes * pointsPerMinute, POINTS_CAP - state.pointsBalance)
+pointsPerMinute = numerator / denominator
+pointsEarned = min(elapsedMinutes × pointsPerMinute, POINTS_CAP − currentBalance)
 ```
 - No bonus for completing full duration
 - No penalty for ending early
 - Capped at 10,000 total points
-- Maximum 3 points/minute enforced via numerator input max = 3 * denominator (HTML input attribute)
+- Maximum 3 points per minute (enforced by numerator ≤ 3 and denominator ≥ 1)
 
 **Reward affordability check:**
 ```
-isAffordable = state.pointsBalance >= REWARD_TIERS[tier].cost
+isAffordable = currentBalance >= tierCost
 ```
-- Unaffordable rewards are grayed out with "Need X more points" message
+- Unaffordable rewards are disabled with "Need X more points" message
 
-### 4.7 Routing
+### 4.7 Navigation
 
-| Route | Component | Notes |
-|-------|-----------|-------|
-| `/` | HomeScreen | Default route; shows WelcomeDialog on initial page load of each app session per Section 2.5; dismissed state resets on page reload per Section 2.2 NFR #2 |
-| `/timer` | ProtectedRoute → TimerScreen | Active focus session only; wrapped with `ProtectedRoute` that redirects to `/` if `!isSessionActive` |
+| View | Behavior |
+|------|----------|
+| Home | Default view; shows onboarding on first load of each app session |
+| Timer | Active focus session only; navigating here when no session is active redirects to Home; navigating away from Timer during a session ends the session |
 
 ## 5. Alternatives Considered
 I evaluated the following alternatives to the chosen design and technical decisions, weighing tradeoffs against the project's stated goals (Section 2.3) and non-goals (Section 2.4).
