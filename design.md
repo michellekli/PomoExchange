@@ -23,14 +23,17 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
    - This gives users flexibility for real-world interruptions without creating pressure to optimize around the timer
 
 3. Points Calculation
-   - User receives points when ending a focus session
-   - Points formula: `points = elapsedMinutes * pointsPerMinute`
-   - Default pointsPerMinute = 0.05
-   - User can set the number of points earned per minute elapsed
-   - The pointsPerMinute setting persists across focus sessions within the same app session
-   - Points are capped at 10,000
-   - If earning points would exceed the cap, the user receives points only up to 10,000
-   - User is notified before starting a focus session when at cap
+    - User receives points when ending a focus session
+    - Points formula: `points = elapsedMinutes * (pointsNumerator / pointsDenominator)`
+    - Default: `pointsNumerator = 1`, `pointsDenominator = 20` (yields 0.05 points/minute)
+    - User sets points per minute via two integer-only numeric inputs: numerator and denominator (pointsPerMinute = numerator / denominator)
+    - Maximum allowed points per minute is 3; numerator input has dynamic max = 3 * denominator, enforced via HTML input `min`/`max` attributes (no extra JS validation)
+    - Denominator input: `type="number" step="1" min="1" max="none"` (accepts only integers, no upper bound)
+    - Numerator input: `type="number" step="1" min="0" max="3 * denominator"` (accepts only integers)
+    - `pointsNumerator` and `pointsDenominator` settings persist across focus sessions within the same app session
+    - Points are capped at 10,000
+    - If earning points would exceed the cap, the user receives points only up to 10,000
+    - User is notified before starting a focus session when at cap
 
 4. Reward System
    - Three predefined reward tiers:
@@ -162,7 +165,7 @@ flowchart TD
 
 ### 3.3 State Management Strategy
 - Client-Only Application: All state is managed client-side without server storage
-- Session State: User-configured minutes for focus session, active session start time (for elapsed time calculation), points balance, points earned per minute (persists within the current app session), reward history (for current app session only), focus session history (for current app session only)
+- Session State: User-configured minutes for focus session, active session start time (for elapsed time calculation), points balance, pointsNumerator, pointsDenominator (persist within the current app session), reward history (for current app session only), focus session history (for current app session only)
 - No backend storage
 
 ### 3.4 Design Constraints
@@ -200,7 +203,7 @@ App
 | Component | Responsibility |
 |-----------|---------------|
 | `WelcomeDialog` | Shown once per app session (on initial page load of each app session per Section 2.5); explains time → points → rewards flow. Resets to un-dismissed on page reload/navigation away per Section 2.2 NFR #2 (no persistent storage). |
-| `SessionConfig` | Duration input (minutes) and points/minute slider/input; disabled during active session. Contains "Start Focus Session" button. Conditionally renders a persistent inline cap warning near the Start button when `state.pointsBalance >= 10000`: *"You've reached the 10,000 points cap! Focus sessions will earn 0 points until you redeem rewards."* |
+| `SessionConfig` | Duration input (minutes) and two integer-only numeric inputs for points numerator/denominator (side-by-side); inputs disabled during active session. Contains "Start Focus Session" button. Conditionally renders a persistent inline cap warning near the Start button when `state.pointsBalance >= 10000`: *"You've reached the 10,000 points cap! Focus sessions will earn 0 points until you redeem rewards."* |
 | `PointsDisplay` | Shows current point balance; hidden until first session completed |
 | `FocusHistorySection` | Expandable section for focus history; collapsed by default |
 | `FocusHistoryHeader` | Shows section title and expand/collapse toggle |
@@ -243,13 +246,16 @@ interface AppState {
   sessionStartTime: Date | null;
   sessionConfig: {
     durationMinutes: number;
-    pointsPerMinute: number;
+    pointsNumerator: number;
+    pointsDenominator: number;
   };
   welcomeDismissed: boolean;
 }
 
 const POINTS_CAP = 10000;
-const DEFAULT_POINTS_PER_MINUTE = 0.05;
+const DEFAULT_POINTS_NUMERATOR = 1;
+const DEFAULT_POINTS_DENOMINATOR = 20; // Yields 0.05 points/minute (1/20)
+const MAX_POINTS_PER_MINUTE = 3;
 
 const REWARD_TIERS = {
   small:  { duration: 5,  cost: 1, suggestions: ['Stretching', 'Get a snack', 'Walk around'] },
@@ -271,7 +277,8 @@ interface AppStateContextValue {
 type AppAction =
   | { type: 'DISMISS_WELCOME' }
   | { type: 'SET_DURATION'; payload: number }
-  | { type: 'SET_POINTS_PER_MINUTE'; payload: number }
+  | { type: 'SET_POINTS_NUMERATOR'; payload: number }
+  | { type: 'SET_POINTS_DENOMINATOR'; payload: number }
   | { type: 'START_SESSION'; payload?: { startTime?: Date } }
   | { type: 'END_SESSION'; payload?: { endTime?: Date } }
   | { type: 'REDEEM_REWARD'; payload: { tier: RewardTier } };
@@ -288,7 +295,8 @@ const initialState: AppState = {
   sessionStartTime: null,
   sessionConfig: {
     durationMinutes: 25,
-    pointsPerMinute: 0.05,
+    pointsNumerator: DEFAULT_POINTS_NUMERATOR,
+    pointsDenominator: DEFAULT_POINTS_DENOMINATOR,
   },
   welcomeDismissed: false,
 };
@@ -297,9 +305,10 @@ const initialState: AppState = {
 **Reducer cases:**
 - `DISMISS_WELCOME`: Sets `welcomeDismissed: true` for the current app session; resets to false on page reload (new app session) due to no persistent storage (Section 2.4 Non-Goal #2).
 - `SET_DURATION`: Updates `sessionConfig.durationMinutes`; ignored if `isSessionActive: true`
-- `SET_POINTS_PER_MINUTE`: Updates `sessionConfig.pointsPerMinute`; ignored if `isSessionActive: true`
+- `SET_POINTS_NUMERATOR`: Updates `sessionConfig.pointsNumerator` to payload (integer, clamped via HTML input min/max); ignored if `isSessionActive: true`
+- `SET_POINTS_DENOMINATOR`: Updates `sessionConfig.pointsDenominator` to payload (integer ≥1, clamped via HTML input min/max); ignored if `isSessionActive: true`
 - `START_SESSION`: Sets `isSessionActive: true`, `sessionStartTime: action.payload?.startTime ?? new Date()`
-- `END_SESSION`: Extracts `endTime = action.payload?.endTime ?? new Date()`. Calculates `elapsedMinutes` as `(endTime.getTime() - state.sessionStartTime!.getTime()) / 60000` (retain fractional values, uses `calculateElapsedMinutes` helper from Section 4.6). Calculates `pointsEarned` as `elapsedMinutes * state.sessionConfig.pointsPerMinute`, capped to ensure `state.pointsBalance + pointsEarned` does not exceed `POINTS_CAP` (10,000) per Section 2.1. Appends new `FocusSession` entry with `elapsedMinutes` set to the calculated value and `pointsEarned` set to the capped value. Sets `isSessionActive: false`, `sessionStartTime: null`. (Matches Section 4.6 algorithm)
+- `END_SESSION`: Extracts `endTime = action.payload?.endTime ?? new Date()`. Calculates `elapsedMinutes` as `(endTime.getTime() - state.sessionStartTime!.getTime()) / 60000` (retain fractional values, uses `calculateElapsedMinutes` helper from Section 4.6). Calculates `pointsPerMinute` as `state.sessionConfig.pointsNumerator / state.sessionConfig.pointsDenominator` (denominator ≥1 enforced by input min=1). Calculates `pointsEarned` as `elapsedMinutes * pointsPerMinute`, capped to ensure `state.pointsBalance + pointsEarned` does not exceed `POINTS_CAP` (10,000) per Section 2.1. Appends new `FocusSession` entry with `elapsedMinutes` set to the calculated value and `pointsEarned` set to the capped value. Sets `isSessionActive: false`, `sessionStartTime: null`. (Matches Section 4.6 algorithm)
 - `REDEEM_REWARD`: Checks affordability, deducts points, appends to `rewardHistory`
 
 ### 4.5 Screen Layouts
@@ -307,13 +316,13 @@ const initialState: AppState = {
 **Home Screen (Base):**
 - Centered vertically
 - Duration input field
-- Points/minute input
+- Two integer-only numeric inputs: Points Numerator, Points Denominator (side-by-side)
 - "Start Focus Session" button
 - Persistent inline points cap warning (displayed near Start Focus Session button when pointsBalance >= 10000)
 
 **Home Screen (Extended):**
 - Points balance at top
-- Duration and points/minute config (same as Base)
+- Duration and points numerator/denominator config (same as Base)
 - "Start Focus Session" button
 - Persistent inline points cap warning (displayed near Start Focus Session button when pointsBalance >= 10000)
 - Reward history bar (conditional, after first redemption)
@@ -329,12 +338,14 @@ const initialState: AppState = {
 ### 4.6 Key Algorithms
 
 **Points calculation:**
+Derived `pointsPerMinute = state.sessionConfig.pointsNumerator / state.sessionConfig.pointsDenominator` (denominator ≥1 enforced by input min=1)
 ```
-pointsEarned = min(elapsedMinutes * state.sessionConfig.pointsPerMinute, POINTS_CAP - state.pointsBalance)
+pointsEarned = min(elapsedMinutes * pointsPerMinute, POINTS_CAP - state.pointsBalance)
 ```
 - No bonus for completing full duration
 - No penalty for ending early
 - Capped at 10,000 total points
+- Maximum 3 points/minute enforced via numerator input max = 3 * denominator (HTML input attribute)
 
 **Elapsed minutes calculation (pure helper function):**
 ```typescript
@@ -351,6 +362,10 @@ function calculateElapsedMinutes(startTime: Date, endTime: Date): number {
 isAffordable = state.pointsBalance >= REWARD_TIERS[tier].cost
 ```
 - Unaffordable rewards are grayed out with "Need X more points" message
+
+**Input clamping (HTML only, no JS validation):**
+- Points Numerator: `type="number" step="1" min="0" max="3 * pointsDenominator"`
+- Points Denominator: `type="number" step="1" min="1" max="none"`
 
 ### 4.7 Routing
 
@@ -414,7 +429,7 @@ No batched testing phase: tests are written alongside corresponding feature code
 #### M2: Core Focus Session Logic (TDD)
 TDD cycle for each sub-task:
 1. **Reducer & State Logic (Vitest Node Mode)**
-   - Red: Write failing tests for `AppStateContext` reducer cases: `START_SESSION`, `END_SESSION`, points calculation (Section 4.4, 4.6), points cap logic
+   - Red: Write failing tests for `AppStateContext` reducer cases: `START_SESSION`, `END_SESSION`, `SET_POINTS_NUMERATOR`, `SET_POINTS_DENOMINATOR`, points calculation (Section 4.4, 4.6), points cap logic
    - Green: Implement reducer and context to pass all tests (Vitest Node Mode)
    - Refactor: Optimize state logic if needed, keep tests passing (Vitest Node Mode)
 2. **Timer & Session Components (Vitest Browser Mode)**
@@ -588,18 +603,20 @@ Maps to key Functional Requirements (Section 2.1). Test placement follows the De
 
 **Tier 3 - Unit & Component Tests** (`src/context/*.test.ts` + `src/components/**/*.test.tsx`):
 1. **Unit Tests (Vitest Node Mode)**
-   - Verify `END_SESSION` action calculates `pointsEarned` correctly, enforces 10,000 points cap (FR3)
-   - Verify `REDEEM_REWARD` deducts points only if affordable, appends entry to `rewardHistory` (FR4)
-   - Verify `START_SESSION` sets `isSessionActive: true` and `sessionStartTime` to current Date (FR2)
-   - **`calculateElapsedMinutes` helper tests** (pure function, deterministic):
-     - 25-minute session: `startTime = new Date('2026-05-06T10:00:00Z')`, `endTime = new Date('2026-05-06T10:25:00Z')` → returns 25
-     - Fractional minutes: 30-second session → returns 0.5
-     - 0 elapsed minutes: `startTime === endTime` → returns 0
-     - Negative time (invalid input): `endTime < startTime` → returns negative value (reducer handles as 0 elapsed)
+    - Verify `END_SESSION` action calculates `pointsEarned` correctly using derived `pointsNumerator / pointsDenominator`, enforces 10,000 points cap (FR3)
+    - Verify `REDEEM_REWARD` deducts points only if affordable, appends entry to `rewardHistory` (FR4)
+    - Verify `START_SESSION` sets `isSessionActive: true` and `sessionStartTime` to current Date (FR2)
+    - Verify `SET_POINTS_NUMERATOR` updates `sessionConfig.pointsNumerator` to payload
+    - Verify `SET_POINTS_DENOMINATOR` updates `sessionConfig.pointsDenominator` to payload
+    - **`calculateElapsedMinutes` helper tests** (pure function, deterministic):
+      - 25-minute session: `startTime = new Date('2026-05-06T10:00:00Z')`, `endTime = new Date('2026-05-06T10:25:00Z')` → returns 25
+      - Fractional minutes: 30-second session → returns 0.5
+      - 0 elapsed minutes: `startTime === endTime` → returns 0
+      - Negative time (invalid input): `endTime < startTime` → returns negative value (reducer handles as 0 elapsed)
 2. **Component Tests (Vitest Browser Mode)**
     - `RewardCatalog`: Verify unaffordable tiers are grayed out with "Need X more points" message (FR4). Accessibility: Run `runAxe(page)` → assert 0 violations.
     - `ProtectedRoute`: Verify redirect to `/` when `!isSessionActive` (Section 4.7). Accessibility: Run `runAxe(page)` on redirect → assert 0 violations.
-    - `SessionConfig`: Verify points cap warning displays when `pointsBalance >= 10000` (FR3). Accessibility: Run `runAxe(page)` → assert 0 violations.
+    - `SessionConfig`: Verify two integer-only numeric inputs for numerator/denominator render, inputs disabled during active session, points cap warning displays when `pointsBalance >= 10000` (FR3). Accessibility: Run `runAxe(page)` → assert 0 violations. Verify numerator input has min=0, step=1, dynamic max=3*denominator; denominator input has min=1, step=1, no max.
     - `WelcomeDialog`: Verify renders on initial app session load; hidden after dismiss click, `welcomeDismissed=true`; no re-render after dismiss within same session; resets on page reload (new app session). Accessibility: Run `runAxe(page)` when open → assert 0 violations; validate dismiss button accessible name via `page.getAttribute('[role="button"]', 'aria-label')`.
     > **Note**: No test for page reload reset behavior: `welcomeDismissed` state is never persisted (Section 2.4 Non-Goal #2), so reload inherently resets to un-dismissed. No test required.
     - `RewardConfirmationModal`: Verify renders when selecting affordable reward; deducts points on confirm. Accessibility: Run `runAxe(page)` when open → assert 0 violations; verify focus trap stays in modal.
@@ -620,8 +637,9 @@ Maps to key Functional Requirements (Section 2.1). Test placement follows the De
 - Verify `END_SESSION` caps points earned if `pointsBalance + pointsEarned > 10000` (e.g., 9999 + 2 = capped to 10000) (FR3) — use payload times to generate known `pointsEarned`
 - Verify `END_SESSION` handles 0 elapsed minutes (empty session) (FR2) — use identical start/end times in payload
 - Verify `REDEEM_REWARD` deducts points correctly when `pointsBalance = tier.cost` (FR4)
-- Verify `END_SESSION` awards 0 points when `pointsPerMinute = 0` (FR3) — use fixed payload times, validate `pointsEarned = 0`
-- Verify `END_SESSION` handles fractional minutes (e.g., 30-second session → 0.5 min × 0.05 = 0.025 points) — use payload times 30 seconds apart
+- Verify `END_SESSION` awards 0 points when `pointsNumerator = 0` (FR3) — use fixed payload times, validate `pointsEarned = 0`
+- Verify `END_SESSION` handles fractional minutes (e.g., 30-second session → 0.5 min × (1/20) = 0.025 points) — use payload times 30 seconds apart
+- Verify `END_SESSION` with max 3 points/minute: `pointsNumerator=3`, `pointsDenominator=1`, 25-minute session → `pointsEarned=75` (or capped)
 - Verify `ProtectedRoute` redirects to `/` on direct `/timer` URL access with no active session (Section 4.7)
 - Verify rapid start/end session clicks do not cause race conditions (SessionConfig button disable logic) (Section 4.2)
 
