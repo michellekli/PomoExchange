@@ -141,7 +141,7 @@ flowchart TD
 | **Points Celebration Overlay** | Center-screen congratulations card over a full-screen backdrop. Shows points earned with a celebratory animation (points counter + confetti). Auto-dismisses after ~3 seconds, revealing Home Extended. |
 
 ### 3.2 State Management
-- All state held in memory via React Context + useReducer (§4.4)
+- All state held in memory (§4.4)
 - Lost on page close/reload — no persistence (localStorage, cookies, or server)
 
 ### 3.3 Design Constraints
@@ -150,12 +150,12 @@ flowchart TD
 - Pure client-side SPA: no backend, no API calls, no database
 - All state in memory; lost on page close/reload
 - No authentication or user accounts
-- Active focus session ends when user navigates away from `/timer` (SPA route transitions only); points calculated identically to manual end
+- Active focus session ends when user navigates away from the timer screen; points calculated identically to manual end
 
 **Platform & Browser Support**
 - Target: modern Chromium, Firefox, WebKit (Safari) — latest major version
 - No legacy browser support (IE11, older Safari)
-- Deployed as static site to GitHub Pages
+- Deployed as a static site
 
 **Device & Responsiveness**
 - Primary target: mobile (iPhone 12 viewport: 390×844)
@@ -164,10 +164,10 @@ flowchart TD
 
 **Accessibility**
 - WCAG 2.1 AA for all interactive components
-- Validated via @axe-core/playwright only — no snapshot testing (§7.2)
+- Validated via automated accessibility testing (§7.2)
 
 **Testing Constraints**
-- Red-green-refactor TDD for all feature work (§6.1)
+- Tests written alongside implementation (§6.1)
 - ~80% Tier 3 branch coverage; 100% user flow path coverage (§7.4)
 
 ## 4. Detailed Design
