@@ -470,7 +470,7 @@ TDD cycle for each sub-task:
 #### M5: Deployment & Final QA
 - Run full Vitest test suite, verify ~80% line/branch coverage for Tier 3 (business logic) code (excluding static presentational UI); validate 100% user flow logic path coverage (9 enumerated paths from Section 3.1) and basic UI rendering checks in integration tests
 - Configure GitHub Pages deployment via `vite.config.ts` base path
-- Perform cross-browser/device QA (latest Chrome, Firefox, Safari desktop/mobile)
+- Run automated cross-browser test suite (Chromium, Firefox, WebKit) in GitHub Actions CI
 - Verify all Functional Requirements (Section 2.1) and Non-Functional Requirements (Section 2.2) are met
 - No new test writing in this phase; only validate existing tests and deployment
 
@@ -516,6 +516,9 @@ This section defines the testing strategy, tooling, scope, and validation criter
 | Unit | Tier 3: Reducer, points calculation, affordability | Vitest Node Mode, no React rendering | `src/context/*.test.ts` |
 | Component | Tier 3: UI components with business logic | Vitest Browser Mode, mocked context/router | `src/components/**/*.test.tsx` |
 | Integration | Tier 2 + Tier 3: Multi-component flows, route protection | Vitest Browser Mode, full app state | `src/__tests__/` |
+| E2E Journey | Full end-to-end user flow | Vitest Browser Mode + Playwright, full app state, `vi.useFakeTimers()`, no mocks | `src/__tests__/e2e-full-journey.test.ts` |
+
+**Cross-Browser Automation**: Vitest Browser Mode uses Playwright provider, configured to run integration/E2E tests across Chromium, Firefox, WebKit (Safari) via `vitest.config.ts` `browser.instances` array.
 
 **Accessibility**: `@axe-core/playwright` exclusively — `runAxe(page)` → assert `violations.length === 0`. **Snapshot testing prohibited** (no `toMatchSnapshot()`, no `accessibility.snapshot()`).
 
@@ -530,7 +533,8 @@ This section defines the testing strategy, tooling, scope, and validation criter
 - **TDD**: Tests written before implementation (red-green-refactor), enforced for M2-M4.
 - **Files**: `src/context/*.test.ts` (unit), `src/components/**/*.test.tsx` (component), `src/__tests__/` (integration).
 - **State Reset**: `beforeEach(() => { render(<App />); vi.useRealTimers(); })`
-- **CI**: All suites run on push/PR via GitHub Actions. Coverage uploaded to Codecov.
+- **CI**: All suites run on push/PR via GitHub Actions with cross-browser matrix (Chromium, Firefox, WebKit) for integration/E2E tests. Coverage uploaded to Codecov.
+- **Browser Configuration**: `vitest.config.ts` includes `browser.instances` array for automated cross-browser testing.
 - **Commands**: `npm run test` (unit + component), `npm run test:integration` (integration).
 
 ### 7.4 Coverage Requirements
@@ -553,9 +557,16 @@ This section defines the testing strategy, tooling, scope, and validation criter
 8. Protected Route Redirect (direct `/timer` URL → redirect to `/`)
 9. Points Cap Warning (`pointsBalance >= 10000` → show inline warning)
 
+**E2E Journey Coverage (100%)** — Single test validating full flow:
+1. Welcome → dismiss → HomeBase
+2. Start focus session → TimerScreen
+3. End session → points calculated → HomeExtended
+4. Redeem reward → confirm → points deducted
+5. Repeat partial flow to verify state persistence
+*Covers all 9 enumerated user flow paths from Section 3.1*
+
 **Exclusions**: Third-party deps, type definitions, Tier 1/2 components.
 
 ### 7.5 Validation & QA
-- Full test suite run + cross-browser validation (latest Chrome, Firefox, Safari desktop/mobile)
-- Manual QA: Verify NFRs (minimal Timer Screen, no persistent state)
+- Full test suite run + automated cross-browser validation (Chromium, Firefox, WebKit/Safari via Playwright)
 - Regression: All tests re-run after each milestone; no new tests in M5
