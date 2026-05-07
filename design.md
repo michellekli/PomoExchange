@@ -384,6 +384,9 @@ I evaluated the following alternatives to the chosen design and technical decisi
 
 ### 6.1 Approach
 Red-green-refactor TDD for all feature work (M2-M4). Tests written alongside code, not deferred.
+1. **Red**: Write failing unit/component tests for the target functionality first
+2. **Green**: Implement minimal code to make tests pass
+3. **Refactor**: Clean up code while keeping tests passing
 
 ### 6.2 Milestones
 | Milestone | Description | Duration | Deps |
