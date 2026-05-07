@@ -137,18 +137,20 @@ flowchart TD
 | **History Sections** | Reward History Bar and Focus History List are inline sections of the Home Extended screen, not separate navigable views or pages. |
 | **Reward Confirmation** | Triggered when selecting an affordable reward from the inline reward catalog. Implemented as a confirmation modal overlay on the home screen. Confirming deducts points and returns to the home screen; canceling closes the modal with no changes. |
 | **Points Cap Warning** | Persistent inline warning displayed near the "Start Focus Session" button on Home Screen (Base/Extended) when `pointsBalance >= POINTS_CAP`. No dismiss option; hidden automatically when points drop below `POINTS_CAP` (via reward redemption). Informs user they will earn 0 points for focus sessions while at cap. |
+| **Navigation Away** | Navigating away from `/timer` during an active session (browser back/forward, manual URL change within the app) ends the session and awards points based on elapsed time, identical to the End Session button. No confirmation dialog. |
 | **Points Celebration Overlay** | Center-screen congratulations card over a full-screen backdrop. Shows points earned with a celebratory animation (points counter + confetti). Auto-dismisses after ~3 seconds, revealing Home Extended. |
 
 ### 3.2 State Management
-- Client-Only Application: All state is managed client-side without server storage
-- No backend storage
+- All state held in memory via React Context + useReducer (§4.4)
+- Lost on page close/reload — no persistence (localStorage, cookies, or server)
 
 ### 3.3 Design Constraints
 
 **Architecture**
 - Pure client-side SPA: no backend, no API calls, no database
-- All state in memory via React Context + useReducer; lost on page close/reload
+- All state in memory; lost on page close/reload
 - No authentication or user accounts
+- Active focus session ends when user navigates away from `/timer` (SPA route transitions only); points calculated identically to manual end
 
 **Platform & Browser Support**
 - Target: modern Chromium, Firefox, WebKit (Safari) — latest major version
@@ -214,7 +216,7 @@ App
 | `TimerDisplay` | Large time-remaining display with progress indicator. |
 | `EndSessionButton` | Ends session early or at completion; triggers points calculation. |
 | `PointsCelebrationOverlay` | Displays congratulations, animated points count, and celebratory effect. Auto-dismisses after a brief timeout. |
-| `ProtectedRoute` | Redirects `/timer` to `/` when no active session. |
+| `ProtectedRoute` | Redirects `/timer` to `/` when no active session. Ends the active session when the user navigates away from `/timer`. |
 
 ### 4.3 Data Types
 
