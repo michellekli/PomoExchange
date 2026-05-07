@@ -27,8 +27,8 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
   - Points formula: `points = elapsedMinutes * (pointsNumerator / pointsDenominator)`
   - Default: `pointsNumerator = 1`, `pointsDenominator = 20` (yields 0.05 points/minute)
   - User sets points per minute via two integer-only numeric inputs: numerator and denominator (pointsPerMinute = numerator / denominator)
-  - `pointsNumerator` min=1, max=3; enforced via HTML input `min`/`max` attributes (no extra JS validation)
-  - `pointsDenominator` min=1, max=75; enforced via HTML input `min`/`max` attributes (no extra JS validation)
+   - `pointsNumerator` min=1, max=3
+   - `pointsDenominator` min=1, max=75
   - `pointsNumerator` and `pointsDenominator` settings persist across focus sessions within the same app session
   - Points are capped at 10,000
   - If earning points would exceed the cap, the user receives points only up to 10,000
@@ -67,7 +67,7 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
    - UI should be minimal to prevent distractions during focus session
    - Animations should guide user through key actions
    - Timer should display time remaining during focus session
-   - Accessibility: All interactive components meet WCAG 2.1 AA standards, validated via Playwright-only automated tests with no snapshot testing (Section 7.2)
+   - Accessibility: All interactive components meet WCAG 2.1 AA standards, validated via automated tests with no snapshot testing (Section 7.2)
 
 2. Data Persistence
    - All state is lost on page close/reload
@@ -147,15 +147,11 @@ flowchart TD
 ### 3.3 Design Constraints
 
 **Architecture**
-- Pure client-side SPA: no backend, no API calls, no database
-- All state in memory; lost on page close/reload
-- No authentication or user accounts
 - Active focus session ends when user navigates away from the timer screen; points calculated identically to manual end
 
 **Platform & Browser Support**
 - Target: modern Chromium, Firefox, WebKit (Safari) — latest major version
 - No legacy browser support (IE11, older Safari)
-- Deployed as a static site
 
 **Device & Responsiveness**
 - Primary target: mobile (iPhone 12 viewport: 390×844)
@@ -168,7 +164,7 @@ flowchart TD
 
 **Testing Constraints**
 - Tests written alongside implementation (§6.1)
-- ~80% Tier 3 branch coverage; 100% user flow path coverage (§7.4)
+- ~80% Tier 3 branch coverage; 100% user flow path coverage (§7.3)
 
 ## 4. Detailed Design
 
@@ -283,12 +279,12 @@ isAffordable = currentBalance >= tierCost
 I evaluated the following alternatives to the chosen design and technical decisions, weighing tradeoffs against the project's stated goals (Section 2.3) and non-goals (Section 2.4).
 
 ### 5.1 Technical Stack Alternatives
-| Decision Area | Alternative | Pros | Cons | Rejected Because |
-|---------------|-------------|------|------|------------------|
-| State Management | Zustand / Redux Toolkit | Scalable for large apps, built-in devtools | Overkill for small client-only state scope, adds external dependencies | Context + useReducer handles points, sessions, and rewards with no third-party libraries |
-| CSS Framework | CSS Modules / styled-components | Scoped styles, no utility class learning curve | More boilerplate for responsive design, less consistent cross-component styling | Tailwind's utility-first approach supports rapid, minimal UI development |
-| Build Tool | Create React App (CRA) | Familiar to many React developers | Deprecated, no longer maintained, slower HMR than Vite | Vite offers faster development experience and better ESM support |
-| Deployment | Vercel / Netlify | Built-in CI/CD, additional deployment features | Requires account setup, GitHub Pages meets all static hosting needs | No need for extra features, GitHub Pages is free and integrated with the repo |
+| Decision Area | Alternative | Pros | Cons | Requirement Satisfied |
+|---------------|-------------|------|------|-----------------------|
+| State Management | Zustand / Redux Toolkit | Scalable for large apps, built-in devtools | Overkill for small client-only state scope, adds external dependencies | Context + useReducer satisfies client-only state management with no external dependencies |
+| CSS Framework | CSS Modules / styled-components | Scoped styles, no utility class learning curve | More boilerplate for responsive design, less consistent cross-component styling | Utility-first CSS satisfies rapid, consistent responsive design |
+| Build Tool | Create React App (CRA) | Familiar to many React developers | Deprecated, no longer maintained, slower HMR than Vite | Vite satisfies fast iterative development with modern ESM support |
+| Deployment | Vercel / Netlify | Built-in CI/CD, additional deployment features | Requires account setup, GitHub Pages meets all static hosting needs | GitHub Pages satisfies free static hosting integrated with the repo |
 
 ### 5.2 Product Design Alternatives
 | Decision Area | Alternative | Pros | Cons | Rejected Because |
@@ -303,90 +299,58 @@ I evaluated the following alternatives to the chosen design and technical decisi
 ## 6. Architecture & Code Organization
 
 ### 6.1 Technology Stack
-| Layer | Decision |
-|-------|----------|
-| Framework | React Router + TypeScript (Vite) |
-| Styling | Tailwind CSS |
-| Unit Testing | Vitest (Node Mode) |
-| Component/Integration/E2E | Vitest Browser Mode with Playwright provider |
-| Accessibility | `@axe-core/playwright` (snapshot testing prohibited) |
-| Deployment | Static site (GitHub Pages) |
+| Requirement | Spec |
+|-------------|------|
+| Static typing | Must prevent common runtime errors and improve developer experience |
+| UI rendering | Must support component-based architecture with client-side navigation |
+| Styling | Must support responsive, accessible UI with minimal visual overhead during focus sessions |
+| Testing | Must support automated E2E flows and WCAG validation in a real browser |
+| Accessibility | All interactive components must meet WCAG 2.1 AA standards |
+| Deployment | Must deploy as a static site with no server-side runtime |
 
-### 6.2 Module Organization
-```
-src/
-  context/     — Reducer, state types, actions (§4.3, 4.4)
-  components/  — Presentational and business-logic components
-  __tests__/   — Integration and E2E tests
-```
-- One component per file, co-located tests in `components/` for component tests
-- Integration/E2E tests in `__tests__/` to distinguish scope
-- Unit tests for reducer logic live in `context/`
+### 6.4 Navigation
+- Home view (default) and Timer view
+- Timer redirects to Home when no active session
+- Navigation away from Timer during active session triggers session end (§4.7)
 
-### 6.3 State Architecture
-- Single reducer (`useReducer` + Context) managing all app state per §4.4
-- No third-party state library — scope is small enough for built-in React primitives
-
-### 6.4 Routing
-- Two routes: `/` (Home) and `/timer` (Timer)
-- `/timer` redirects to `/` when no active session (Protected Route pattern)
-- Navigation away from `/timer` during active session triggers session end (§4.7)
-
-### 6.5 Testing Strategy
-| Tier | Criteria | Coverage Target |
-|------|----------|-----------------|
-| Tier 1 | Pure presentational, no logic | Not tested |
-| Tier 2 | Data display, renders props | Integration only |
-| Tier 3 | Business logic, interactions, calculations | ~80% branch coverage |
-- User flow logic paths: 100% coverage (§3.1 flow diagram)
-- No behavior tested in both component and integration suites (Exclusive Scope Principle)
-- Three tiers defined in §7.1; test types and locations defined in §7.2
+### 6.5 Testing Requirements
+| Tier | Behaviour to Cover | Coverage Target |
+|------|--------------------|-----------------|
+| Tier 1 | Static presentational output, no logic or interactions | Not tested |
+| Tier 2 | Renders data from props, read-only display | Tested via integration with parent |
+| Tier 3 | Business logic, user interactions, state transitions, conditional rendering, calculations | ~80% branch coverage |
+- All user flow logic paths (§3.1): 100% coverage
+- Each behavior is tested exactly once
 
 ## 7. Testing
-This section defines the testing strategy, tooling, scope, and validation criteria for PomoExchange, complementing the TDD methodology outlined in Section 6.1. All testing aligns with the project's Functional Requirements (Section 2.1), Non-Functional Requirements (Section 2.2).
+
+This section defines the testing strategy, scope, and validation criteria for PomoExchange, aligning with the project's Functional Requirements (Section 2.1) and Non-Functional Requirements (Section 2.2).
 
 ### 7.1 Testing Scope
 
 | Tier | Criteria | Testing Approach | Examples |
 |------|----------|------------------|----------|
 | **Tier 1: Pure Presentational** | No logic, no interactions, no state | **No tests** | Static divs, simple icons |
-| **Tier 2: Data Display** | Renders prop data, has `data-testid`/`aria-label`, no interactions | **Integration only** | `TimerDisplay`, `FocusSessionItem` |
-| **Tier 3: Business Logic** | User interactions, conditional rendering, calculations, route protection | **Full testing** (unit + component + integration) | `RewardCatalog`, `SessionConfig`, reducer |
+| **Tier 2: Data Display** | Renders prop data, no interactions | **Integration only** | Display-only components |
+| **Tier 3: Business Logic** | User interactions, conditional rendering, calculations, route protection | **Full testing** (unit + component + integration) | Reducer, interactive components |
 
 **Coverage impact**: Only Tier 3 code counts toward ~80% coverage target. Tier 1/2 excluded.
 
 **State Reset Tests**: Explicitly excluded (Non-Goal #2). All state resets on reload by design.
 
-**Timer drift** (background tab, system sleep, setInterval) explicitly excluded per user request.
+**Timer drift** (background tab, system sleep, setInterval) explicitly excluded.
 
-### 7.2 Test Types
+### 7.2 Test Scope Requirements
 
-| Test Type | Target | Scope | File Location |
-|-----------|--------|-------|---------------|
-| Unit | Tier 3: Reducer, points calculation, affordability | Vitest Node Mode, no React rendering | `src/context/*.test.ts` |
-| Component | Tier 3: UI components with business logic | Vitest Browser Mode, mocked context/router | `src/components/**/*.test.tsx` |
-| Integration | Tier 2 + Tier 3: Multi-component flows, route protection | Vitest Browser Mode, full app state | `src/__tests__/` |
-| E2E Journey | Full end-to-end user flow | Vitest Browser Mode + Playwright, full app state, no mocks except for timer mocks | `src/__tests__/e2e-full-journey.test.ts` |
+Test coverage must cover:
+- **Pure logic**: Reducer, calculations, affordability checks — no rendering
+- **Interactive UI components**: Components with business logic — isolated with mocked dependencies
+- **Multi-component flows**: Full app state
+- **Full user journey**: Welcome through reward redemption — no mocks except timer
 
-**Cross-Browser Automation**: Vitest Browser Mode uses Playwright provider, configured to run integration/E2E tests across Chromium, Firefox, WebKit (Safari).
+Must work correctly across modern browsers. All interactive components must meet WCAG 2.1 AA standards. Tests must produce deterministic, repeatable results regardless of wall-clock timing. Must be usable on modern mobile devices and meet WCAG 2.1 AA touch target requirements.
 
-**Accessibility**: `@axe-core/playwright` exclusively, snapshot testing prohibited.
-
-**Mobile**: iPhone 12 Viewport Size = width: 390, height: 844. WCAG 2.1 AA touch targets ≥44×44px.
-
-**Deterministic Timing**: Unit tests use fixed payload times. Integration tests use timer mocks.
-
-**Exclusive Scope Principle**: No behavior tested in both component and integration suites. Component tests = isolated single component + mocked deps. Integration tests = multi-component flows + full app state.
-
-### 7.3 Test Configuration
-
-- **TDD**: Tests written before implementation (red-green-refactor), enforced for M2-M4.
-- **Files**: `src/context/*.test.ts` (unit), `src/components/**/*.test.tsx` (component), `src/__tests__/` (integration).
-- **State Reset**: Performed before each test.
-- **CI**: All suites run on push/PR via GitHub Actions with cross-browser matrix (Chromium, Firefox, WebKit) for integration/E2E tests. Coverage uploaded to Codecov.
-- **Browsers**: Chromium, Firefox, WebKit/Safari via Playwright.
-
-### 7.4 Coverage Requirements
+### 7.3 Coverage Requirements
 
 **Tier 3 Branch Coverage (~80%)** — all decision point branches:
 - Welcome Dialog: shown vs dismissed
@@ -415,7 +379,3 @@ This section defines the testing strategy, tooling, scope, and validation criter
 5. Repeat partial flow to verify state persistence
 
 **Exclusions**: Third-party deps, type definitions, Tier 1/2 components.
-
-### 7.5 Validation & QA
-- Full test suite run + automated cross-browser validation (Chromium, Firefox, WebKit/Safari via Playwright)
-- Regression: All tests re-run after each milestone; no new tests in M5
