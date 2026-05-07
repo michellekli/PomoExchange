@@ -97,80 +97,75 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
 ### 2.5 Definitions
 1. App Session: The period from when a user loads the page in their browser until they close the tab or navigate away. All history (focus sessions and rewards) is scoped to a single app session and is lost when the session ends.
 
-## 3. Architecture Overview
+## 3. User Flow & Design Constraints
 
 ### 3.1 User Flow
 
 ```mermaid
 flowchart TD
-   %% Define styles
-   classDef welcome fill:#1565c0,stroke:#1976d2,stroke-width:2px,color:#fff,text-align:left
-   classDef homeBase fill:#616161,stroke:#9e9e9e,stroke-width:2px,color:#fff,text-align:left
-   classDef timer fill:#e65100,stroke:#f57c00,stroke-width:2px,color:#fff,text-align:left
-   classDef homeExtended fill:#2e7d32,stroke:#388e3c,stroke-width:2px,color:#fff,text-align:left
-   classDef action fill:#f57f17,stroke:#f9a825,stroke-width:2px,color:#fff,text-align:left
-
-   %% Welcome Dialog
-   Welcome[Welcome Dialog<br/>Explain time→points→rewards flow]:::welcome
+   Welcome[Welcome Dialog<br/>Explain time → points → rewards flow]
    Welcome -->|Close| HomeBase
 
-   %% Home Screen - Base
-   HomeBase[Home Screen - Base<br/>Select duration & points/minute]:::homeBase
+   HomeBase[Home Screen, Base<br/>Select duration & points/minute]
    HomeBase -->|Start Focus Session| Timer
 
-   %% Timer Screen
-   Timer[Timer Screen<br/>View time remaining]:::timer
-   Timer -->|End Session| EndSession
+   Timer[Timer Screen<br/>View time remaining]
+   Timer -->|End Session| PointsCalc
 
-   %% End Session
-   EndSession[End Session<br/>Calculate points based on elapsed time]:::action
-   EndSession -->|Points Earned| HomeExtended
+   PointsCalc[Points Calculation<br/>Based on elapsed time]
+   PointsCalc -->|Points Earned| HomeExtended
 
-   %% Home Screen - Extended
-   HomeExtended[Home Screen - Extended<br/>- View Points, Rewards & History<br/>- Configure Duration & Points/Minute<br/>- Inline Reward History Bar, Focus History List & Reward Catalog]:::homeExtended
+   HomeExtended[Home Screen, Extended<br/>View points, rewards & history]
    HomeExtended -->|Start Focus Session| Timer
+   HomeExtended -->|Select Reward| Confirmation
 
+   Confirmation[Reward Confirmation Modal]
+   Confirmation -->|Confirm - Deduct Points| HomeExtended
+   Confirmation -->|Cancel| HomeExtended
 ```
 
 #### Notes
 | Category | Details |
 |----------|---------|
-| **State** | All state lost on page close/reload<br/>Points deducted on redemption<br/>No backend storage<br/>Client-side only |
-| **Welcome Dismissal** | WelcomeDialog dismissal is scoped to the current app session only; no cross-session persistence per Non-Goal #2. |
-| **Screen States** | HomeExtended includes all HomeBase functionality (duration and pointsPerMinute configuration) plus points display, reward catalog, and focus session history; reward history appears conditionally after the first reward redemption<br/>Home screen transitions from Base to Extended after first focus session |
-| **Rewards** | Rewards require points to redeem<br/>Points deducted upon confirmation<br/>Reward history updated after redemption |
-| **Affordability** | Checked at catalog display<br/>Only affordable rewards selectable<br/>No error screen needed |
-| **Reward History Bar** | Displayed inline on Extended Home after first reward redemption as a row of tier-differentiated shapes: Small=triangle, Medium=square, Large=pentagon. Hover (desktop) or tap (mobile) reveals redemption timestamp, tier, and points cost. Scoped to current app session only. |
-| **Focus History List** | Focus session history for only the current app session |
+| **State** | All state lost on page close/reload. Points deducted on redemption. No backend storage. Client-side only. |
+| **Welcome Dismissal** | Welcome dismissal is scoped to the current app session only. No cross-session persistence per Non-Goal #2. |
+| **Screen States** | After the first focus session, the home screen expands to show points balance, reward catalog, and focus session history. Reward history appears after the first reward redemption. |
+| **Rewards** | Rewards require points to redeem. Points deducted upon confirmation. Reward history updated after redemption. |
+| **Affordability** | Checked at catalog display. Only affordable rewards selectable. No error screen needed. |
+| **Reward History Bar** | Displayed inline on the home screen after first reward redemption as a row of tier-differentiated shapes. Hover (desktop) or tap (mobile) reveals redemption timestamp, tier, and points cost. Scoped to current app session only. |
+| **Focus History List** | Focus session history for only the current app session. |
 | **History Sections** | Reward History Bar and Focus History List are inline sections of the Home Extended screen, not separate navigable views or pages. |
-| **Reward Confirmation** | Triggered when selecting an affordable reward from the inline Reward Catalog. Implemented as `RewardConfirmationModal` (modal overlay on Home Screen), not a separate screen. Confirming deducts points and returns to Home Extended; canceling closes modal with no changes. |
-| **Points Cap Warning** | Persistent inline warning displayed near the "Start Focus Session" button on Home Screen (Base/Extended) when `pointsBalance >= 10000`. No dismiss option; hidden automatically when points drop below 10k (via reward redemption). Informs user they will earn 0 points for focus sessions while at cap. |
-| **Route Guards** | `/timer` route is protected by `ProtectedRoute` wrapper. If user navigates to `/timer` when `!isSessionActive` (e.g., direct URL access, page reload), they are automatically redirected to `/` (Home Screen). |
+| **Reward Confirmation** | Triggered when selecting an affordable reward from the inline reward catalog. Implemented as a confirmation modal overlay on the home screen. Confirming deducts points and returns to the home screen; canceling closes the modal with no changes. |
+| **Points Cap Warning** | Persistent inline warning displayed near the "Start Focus Session" button on Home Screen (Base/Extended) when `pointsBalance >= POINTS_CAP`. No dismiss option; hidden automatically when points drop below `POINTS_CAP` (via reward redemption). Informs user they will earn 0 points for focus sessions while at cap. |
 
-> **Flow Path Reference**: The 9 enumerated paths above map to the "user flow logic path coverage" metric in Section 6.5/7.4.
-
-### 3.2 Technical Stack
-
-| Component | Technology | Version | Rationale |
-|-----------|------------|---------|-----------|
-| Frontend Framework | React | TBD | Latest stable with full TypeScript support |
-| Routing | React Router | TBD | Declarative routing with type safety |
-| State Management | Context + useReducer | TBD | Global state for points/focus sessions without external dependencies |
-| Build Tool | Vite | TBD | Fast HMR, optimized for React |
-| CSS Framework | Tailwind CSS | TBD | Utility-first, consistent styling |
-| Language | TypeScript | TBD | Type safety, better IDE support |
-| Testing | Vitest (Node + Browser Mode) | TBD | Fast, ESM-first, unit tests in Node, component/integration in real browsers |
-| Deployment | GitHub Pages | - | Static hosting, free |
-
-### 3.3 State Management Strategy
+### 3.2 State Management
 - Client-Only Application: All state is managed client-side without server storage
-- Session State (persists within the current app session only): user-configured minutes for focus session, active session start time (for elapsed time calculation), points balance, pointsNumerator, pointsDenominator, reward history, focus session history
 - No backend storage
 
-### 3.4 Design Constraints
-- Client-Only Application: No backend, no API calls
-- No Authentication: No user accounts, no login required
-- No Server-Side Validation: All validation is client-side
+### 3.3 Design Constraints
+
+**Architecture**
+- Pure client-side SPA: no backend, no API calls, no database
+- All state in memory via React Context + useReducer; lost on page close/reload
+- No authentication or user accounts
+
+**Platform & Browser Support**
+- Target: modern Chromium, Firefox, WebKit (Safari) — latest major version
+- No legacy browser support (IE11, older Safari)
+- Deployed as static site to GitHub Pages
+
+**Device & Responsiveness**
+- Primary target: mobile (iPhone 12 viewport: 390×844)
+- Responsive: single-column mobile layout → multi-column on wider screens
+- Touch targets ≥44×44px per WCAG 2.1 AA
+
+**Accessibility**
+- WCAG 2.1 AA for all interactive components
+- Validated via @axe-core/playwright only — no snapshot testing (§7.2)
+
+**Testing Constraints**
+- Red-green-refactor TDD for all feature work (§6.1)
+- ~80% Tier 3 branch coverage; 100% user flow path coverage (§7.4)
 
 ## 4. Detailed Design
 
@@ -425,7 +420,7 @@ Red-green-refactor TDD for all feature work (M2-M4). Tests written alongside cod
 - No standalone testing phase
 
 ## 7. Testing
-This section defines the testing strategy, tooling, scope, and validation criteria for PomoExchange, complementing the TDD methodology outlined in Section 6.1. All testing aligns with the project's Functional Requirements (Section 2.1), Non-Functional Requirements (Section 2.2), and Technical Stack (Section 3.2).
+This section defines the testing strategy, tooling, scope, and validation criteria for PomoExchange, complementing the TDD methodology outlined in Section 6.1. All testing aligns with the project's Functional Requirements (Section 2.1), Non-Functional Requirements (Section 2.2).
 
 ### 7.1 Testing Scope
 
@@ -486,7 +481,7 @@ This section defines the testing strategy, tooling, scope, and validation criter
 6. HomeExtended → Reward Redemption → Confirm (select reward → confirm → return)
 7. HomeExtended → Reward Redemption → Cancel (select reward → cancel → stay on HomeExtended)
 8. Protected Route Redirect (direct `/timer` URL → redirect to `/`)
-9. Points Cap Warning (`pointsBalance >= 10000` → show inline warning)
+9. Points Cap Warning (`pointsBalance >= POINTS_CAP` → show inline warning)
 
 **E2E Journey Coverage (100%)** — Single test validating full flow:
 1. Welcome → dismiss → HomeBase
