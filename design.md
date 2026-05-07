@@ -30,8 +30,8 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
   - `pointsNumerator` min=1, max=3
   - `pointsDenominator` min=1, max=75
   - `pointsNumerator` and `pointsDenominator` settings persist across focus sessions within the same app session
-  - Points are capped at 10,000
-  - If earning points would exceed the cap, the user receives points only up to 10,000
+  - Points are capped at 10,000 total balance
+  - If earning points would exceed the total balance cap, the user receives points only up to 10,000
   - User is notified before starting a focus session when at cap
 
 4. Reward System
@@ -176,7 +176,7 @@ The app has two screens: **Home** and **Timer**.
 - Onboarding explanation (shown on first load only of each app session)
 - Session configuration (duration, points per minute, start action)
 - Points display (hidden until first session)
-- Reward catalog (three predefined tiers: Small / Medium / Large)
+- Reward catalog (three predefined tiers: Small / Medium / Large; hidden until first session)
 - Reward history bar (hidden until first redemption)
 - Focus history list (hidden until first session)
 
@@ -298,7 +298,7 @@ I evaluated the following alternatives to the chosen design and technical decisi
 
 ## 6. Architecture & Code Organization
 
-### 6.1 Technology Stack
+### 6.1 Architecture Requirements
 | Requirement | Spec |
 |-------------|------|
 | Static typing | Must prevent common runtime errors and improve developer experience |
