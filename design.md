@@ -648,7 +648,6 @@ Maps to key Functional Requirements (Section 2.1). Test placement follows the De
        });
        ```
        Resets `AppStateContext` to initial state (Section 4.4) between tests to prevent cross-test state contamination (e.g., stale `pointsBalance`, `welcomeDismissed`, `isSessionActive`).
-     - **Tier 2 Touch Target Compliance (Integration Tests)**: For `TimerDisplay` and `FocusSessionItem`, set viewport to 390x844 in integration flows, assert interactive parent elements (if any) have `getBoundingClientRect()` width ≥44px && height ≥44px.
 
 **Deterministic Timing Strategy for Tests**:
 - **Unit/Reducer tests**: Use fixed payload times in `START_SESSION` and `END_SESSION` actions (e.g., `new Date('2026-05-06T10:00:00Z')`, `new Date('2026-05-06T10:25:00Z')`) to calculate exact `elapsedMinutes`.
