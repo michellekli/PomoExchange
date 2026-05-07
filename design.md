@@ -382,100 +382,63 @@ I evaluated the following alternatives to the chosen design and technical decisi
 
 ## 6. Implementation Plan
 
-### 6.1 TDD Approach
-This plan follows Test-Driven Development (TDD) principles with a mandatory red-green-refactor cycle for all feature work:
+### 6.1 Approach
+Red-green-refactor TDD for all feature work (M2-M4). Tests written alongside code, not deferred.
 1. **Red**: Write failing unit/component tests for the target functionality first
 2. **Green**: Implement minimal code to make tests pass
 3. **Refactor**: Clean up code while keeping tests passing
-No batched testing phase: tests are written alongside corresponding feature code, not deferred to the end of the project.
 
-### 6.2 Timeline & Milestones
-| Milestone | Description | Estimated Duration | Dependencies |
-|-----------|-------------|-------------------|--------------|
-| M1: Project Scaffolding & Test Setup | Initialize React Router + TypeScript project (scaffolded via `create-react-router`, uses Vite under the hood), configure Tailwind CSS, set up Vitest browser mode, create base folder structure per Component Hierarchy (Section 4.1), define core types (Section 4.3) | 2-3 days | None |
-| M2: Core Focus Session Logic (TDD) | Write tests first for state reducer, points calculation, session lifecycle; implement TimerScreen, SessionConfig, ProtectedRoute to pass tests | 4-5 days | M1 |
-| M3: Points & Reward System (TDD) | Write tests first for reward redemption, affordability checks, history components; implement PointsDisplay, RewardCatalog, RewardHistoryBar, FocusHistorySection to pass tests | 4-5 days | M2 |
-| M4: Onboarding & UI Polish (TDD) | Write tests first for WelcomeDialog, responsive layouts, animations; implement UI polish to pass tests | 3-4 days | M3 |
-| M5: Deployment & Final QA | Run full test suite, configure GitHub Pages deployment, perform cross-browser/device QA, verify all requirements met | 2-3 days | M4 |
+### 6.2 Milestones
+| Milestone | Description | Duration | Deps |
+|-----------|-------------|----------|------|
+| M1: Scaffolding & Test Setup | Init React Router + TS project, configure Tailwind + Vitest Browser Mode (Playwright), create folder structure per §4.1, define core types per §4.3 | 2-3d | None |
+| M2: Core Focus Logic (TDD) | Reducer, TimerScreen, TimerDisplay, EndSessionButton, ProtectedRoute, SessionConfig | 4-5d | M1 |
+| M3: Points & Reward System (TDD) | PointsDisplay, FocusHistorySection, RewardCatalog, TierCard, ConfirmationModal, RewardHistoryBar, RewardShape | 4-5d | M2 |
+| M4: Onboarding & UI Polish (TDD) | WelcomeDialog, responsive layouts, animations | 3-4d | M3 |
+| M5: Deployment & QA | Full suite pass, GitHub Pages deploy, cross-browser QA (Chromium/Firefox/WebKit) | 2-3d | M4 |
 
 ### 6.3 Build Phase Details
-#### M1: Project Scaffolding & Test Setup
-- Scaffold project with `npx create-react-router@latest` (select TypeScript and Vite options when prompted)
-- Install dependencies: `tailwindcss`, `postcss`, `autoprefixer`, `@axe-core/playwright`, `vitest` (Node Mode for unit tests, default behavior)
-- Set up Vitest Browser Mode (component/integration tests): Run `npx vitest init browser` (automatically installs `@vitest/browser`, Playwright browser provider, and configures `vitest.config.ts` for browser-mode testing)
-- Configure Vitest to output lcov coverage format for Codecov compatibility in `vitest.config.ts`
-- Define core types (`AppState`, `AppAction`, `FocusSession`, `RewardRedemption`) per Section4.3, 4.4
-- Create folder structure: `src/components/`, `src/context/`, `src/routes/`, `src/__tests__/`
-- Add npm scripts to `package.json`:
-  - `"test": "vitest run src/context/ && vitest run --browser src/components/"` (runs Node Mode unit tests + Browser Mode component tests with lcov coverage)
-  - `"test:integration": "vitest run --browser src/__tests__/"` (runs Browser Mode integration tests)
-- Write initial smoke tests to verify project setup (React renders, router works) using Vitest Browser Mode
 
-#### M2: Core Focus Session Logic (TDD)
-TDD cycle for each sub-task:
-1. **Reducer & State Logic (Vitest Node Mode)**
-   - Red: Write failing tests for `AppStateContext` reducer cases: `START_SESSION`, `END_SESSION`, `SET_POINTS_NUMERATOR`, `SET_POINTS_DENOMINATOR`, points calculation (Section 4.4, 4.6), points cap logic
-   - Green: Implement reducer and context to pass all tests (Vitest Node Mode)
-   - Refactor: Optimize state logic if needed, keep tests passing (Vitest Node Mode)
-2. **Timer & Session Components (Vitest Browser Mode)**
-   - Red: Write failing component tests for `TimerScreen`, `TimerDisplay`, `EndSessionButton`, `ProtectedRoute` (Section 4.1, 4.2, 4.7)
-   - Green: Implement components to pass tests (Vitest Browser Mode)
-   - Refactor: Clean up component code, keep tests passing (Vitest Browser Mode)
-3. **Session Config (Vitest Browser Mode)**
-   - Red: Write failing tests for `SessionConfig` input handling, points cap warning (Section 4.2, 4.5)
-   - Green: Implement `SessionConfig` to pass tests (Vitest Browser Mode)
-   - Refactor: Clean up as needed (Vitest Browser Mode)
+**M1: Scaffolding & Test Setup**
+- Scaffold React Router + TypeScript project (uses Vite under the hood)
+- Add Tailwind CSS, Vitest, `@vitest/browser` (Playwright provider), `@axe-core/playwright`
+- Configure Vitest Browser Mode and coverage output
+- Define `AppState`, `AppAction`, `FocusSession`, `RewardRedemption` (§4.3, 4.4)
+- Create project folders
+- Wire up npm scripts: unit tests (Node Mode), component/integration tests (Browser Mode)
+- Smoke test: verify React renders + router works
 
-#### M3: Points & Reward System (TDD)
-TDD cycle for each sub-task:
-1. **Points & History Display**
-   - Red: Write failing Vitest browser mode tests for `PointsDisplay`, `FocusHistorySection`, `FocusSessionItem` (Section 4.2)
-   - Green: Implement components to pass tests
-   - Refactor: Clean up as needed
-2. **Reward System**
-   - Red: Write failing Vitest browser mode tests for `RewardCatalog`, `RewardTierCard`, affordability checks (Section 4.2, 4.6), `RewardConfirmationModal` points deduction
-   - Green: Implement components to pass tests
-   - Refactor: Clean up as needed
-3. **Reward History**
-   - Red: Write failing Vitest browser mode tests for `RewardHistoryBar`, `RewardShape` interactions (Section 4.2)
-   - Green: Implement components to pass tests
-   - Refactor: Clean up as needed
+**M2: Core Focus Session Logic (TDD)**
+- Reducer tests (Node Mode)
+- Component tests (Browser Mode)
 
-#### M4: Onboarding & UI Polish (TDD)
-TDD cycle for each sub-task:
-1. **Onboarding**
-   - Red: Write failing Vitest browser mode tests for `WelcomeDialog` rendering, dismiss logic (Section 4.2)
-   - Green: Implement `WelcomeDialog` to pass tests
-   - Refactor: Clean up as needed
-2. **Responsive & UI Polish**
-   - Red: Write failing Vitest browser mode tests for responsive reward grid (Section 4.5), minimal animations, distraction-free `TimerScreen` (Section 2.2 NFR)
-   - Green: Implement UI polish to pass tests
-   - Refactor: Clean up as needed
+**M3: Points & Reward System (TDD)**
+- PointsDisplay, FocusHistorySection/FocusSessionItem rendering
+- RewardCatalog affordability logic, RewardTierCard, RewardConfirmationModal points deduction
+- RewardHistoryBar + RewardShape hover/tap interactions
 
-#### M5: Deployment & Final QA
-- Run full Vitest test suite, verify ~80% line/branch coverage for Tier 3 (business logic) code (excluding static presentational UI); validate 100% user flow logic path coverage (9 enumerated paths from Section 3.1) and basic UI rendering checks in integration tests
-- Configure GitHub Pages deployment via `vite.config.ts` base path
-- Run automated cross-browser test suite (Chromium, Firefox, WebKit) in GitHub Actions CI
-- Verify all Functional Requirements (Section 2.1) and Non-Functional Requirements (Section 2.2) are met
-- No new test writing in this phase; only validate existing tests and deployment
+**M4: Onboarding & UI Polish (TDD)**
+- WelcomeDialog rendering + dismiss
+- Responsive reward grid (3-col → 1-col), TimerScreen distraction-free layout, animations
+
+**M5: Deployment & Final QA**
+- Full suite pass, verify ~80% Tier 3 line/branch coverage, 100% user flow path coverage (§3.1)
+- Configure GitHub Pages
+- CI matrix (Chromium, Firefox, WebKit); no new tests written in M5
 
 ### 6.4 Dependencies & Risks
-- **TBD Tech Versions**: Finalize React, React Router, Tailwind, Vitest versions (marked TBD in Section 3.2) before M1 to avoid compatibility issues
-- **No Backend**: All state is client-side only (Section 2.4 Non-Goal #2), no external state dependencies
-- **Browser Compatibility**: Validate Tailwind, React, and Vitest browser mode features work on target browsers (latest version of major browsers)
-- **TDD Adoption**: Strictly follow red-green-refactor cycle; avoid skipping tests for UI components
+- Finalize stack versions before M1
+- All state client-side (§2.4); no external state deps
+- Validate Vitest Browser Mode + Playwright provider on target browsers
+- Enforce red-green-refactor; no skipping tests for UI
 
 ### 6.5 Success Criteria
-- TDD red-green-refactor cycle followed for all feature milestones (M2-M4)
-- All Functional Requirements (Section 2.1) implemented and verified via tests
-- All Non-Functional Requirements (Section 2.2) met
-- ~80% line/branch coverage for Tier 3 (business logic) code, covering all decision point branches (affordable/unaffordable, capped/uncapped, active/inactive session, etc.). Integration tests include basic UI rendering checks for all displayed UI components.
-- 100% user flow logic path coverage (defined as the 9 enumerated paths in Section 3.1 User Flow diagram + notes, verified via integration tests in `src/__tests__/`)
-- Coverage uploaded to Codecov on every push/PR, meeting ~80% Tier 3 line/branch coverage target (Section 7.4)
-- All test suites pass in GitHub Actions CI on every push/PR
-- Successful production build with no console errors/warnings
-- Public GitHub Pages deployment passes all QA checks
-- No standalone testing phase; all tests written alongside corresponding feature code
+- TDD cycle followed for M2-M4
+- All §2.1 FRs and §2.2 NFRs implemented and tested
+- ~80% Tier 3 line/branch coverage; 100% user flow path coverage (verified in CI)
+- Successful production build, no console errors
+- Public GitHub Pages deployment passes QA
+- No standalone testing phase
 
 ## 7. Testing
 This section defines the testing strategy, tooling, scope, and validation criteria for PomoExchange, complementing the TDD methodology outlined in Section 6.1. All testing aligns with the project's Functional Requirements (Section 2.1), Non-Functional Requirements (Section 2.2), and Technical Stack (Section 3.2).
