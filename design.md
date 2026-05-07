@@ -141,11 +141,11 @@ flowchart TD
 | **Reward History Bar** | Displayed inline on Extended Home after first reward redemption as a row of tier-differentiated shapes: Small=triangle, Medium=square, Large=pentagon. Hover (desktop) or tap (mobile) reveals redemption timestamp, tier, and points cost. Scoped to current app session only. |
 | **Focus History List** | Focus session history for only the current app session |
 | **History Sections** | Reward History Bar and Focus History List are inline sections of the Home Extended screen, not separate navigable views or pages. |
-| **Reward Confirmation** | Triggered when selecting an affordable reward from the inline Reward Catalog. Implemented as `RewardConfirmationModal` (modal overlay on Home Screen), not a separate screen. Confirming deducts points and returns to Home Extended. |
+| **Reward Confirmation** | Triggered when selecting an affordable reward from the inline Reward Catalog. Implemented as `RewardConfirmationModal` (modal overlay on Home Screen), not a separate screen. Confirming deducts points and returns to Home Extended; canceling closes modal with no changes. |
 | **Points Cap Warning** | Persistent inline warning displayed near the "Start Focus Session" button on Home Screen (Base/Extended) when `pointsBalance >= 10000`. No dismiss option; hidden automatically when points drop below 10k (via reward redemption). Informs user they will earn 0 points for focus sessions while at cap. |
 | **Route Guards** | `/timer` route is protected by `ProtectedRoute` wrapper. If user navigates to `/timer` when `!isSessionActive` (e.g., direct URL access, page reload), they are automatically redirected to `/` (Home Screen). |
 
-> **Flow Path Reference**: The 8 enumerated paths above map to the "user flow logic path coverage" metric in Section 6.5/7.4.
+> **Flow Path Reference**: The 9 enumerated paths above map to the "user flow logic path coverage" metric in Section 6.5/7.4.
 
 ### 3.2 Technical Stack
 
@@ -453,7 +453,7 @@ TDD cycle for each sub-task:
    - Refactor: Clean up as needed
 
 #### M5: Deployment & Final QA
-- Run full Vitest test suite, verify ~90% line/branch coverage for Tier 3 (business logic) code (excluding static presentational UI); validate 100% user flow logic path coverage (8 enumerated paths from Section 3.1) and basic UI rendering checks in integration tests
+- Run full Vitest test suite, verify ~90% line/branch coverage for Tier 3 (business logic) code (excluding static presentational UI); validate 100% user flow logic path coverage (9 enumerated paths from Section 3.1) and basic UI rendering checks in integration tests
 - Configure GitHub Pages deployment via `vite.config.ts` base path
 - Perform cross-browser/device QA (latest Chrome, Firefox, Safari desktop/mobile)
 - Verify all Functional Requirements (Section 2.1) and Non-Functional Requirements (Section 2.2) are met
@@ -470,7 +470,7 @@ TDD cycle for each sub-task:
 - All Functional Requirements (Section 2.1) implemented and verified via tests
 - All Non-Functional Requirements (Section 2.2) met
 - ~90% line/branch coverage for Tier 3 (business logic) code, covering all decision point branches (affordable/unaffordable, capped/uncapped, active/inactive session, etc.). Integration tests include basic UI rendering checks for all displayed UI components.
-- 100% user flow logic path coverage (defined as the 8 enumerated paths in Section 3.1 User Flow diagram + notes, verified via integration tests in `src/__tests__/`)
+- 100% user flow logic path coverage (defined as the 9 enumerated paths in Section 3.1 User Flow diagram + notes, verified via integration tests in `src/__tests__/`)
 - Coverage uploaded to Codecov on every push/PR, meeting ~90% Tier 3 line/branch coverage target (Section 7.4)
 - All test suites pass in GitHub Actions CI on every push/PR
 - Successful production build with no console errors/warnings
@@ -563,20 +563,22 @@ Per Section 6.5 Success Criteria:
   - End Session: early end vs full duration end
   - Points Calculation: under cap vs hits/exceeds cap
   - Reward Selection: affordable (modal opens) vs unaffordable (grayed out)
-  - Reward Confirmation: confirm (deduct points) vs cancel (no change)
   - Protected Route: active session (allow access) vs no session (redirect)
 - Tier 2 components are excluded from coverage metrics
 
+> **Note**: Reward confirmation/cancelation is tracked via flow paths #6 and #7 in User Flow Logic Path Coverage (100%), not as a decision point branch.
+
 **User Flow Logic Path Coverage (100%)**:
-- Defined as the 8 enumerated paths in Section 3.1 User Flow diagram + notes:
-  1. Welcome → HomeBase (initial load → dismiss → Home Screen Base)
-  2. HomeBase → Timer (start focus session → active Timer Screen)
-  3. Timer → EndSession (end session → calculate points)
-  4. EndSession → HomeExtended (points earned → Home Screen Extended)
-  5. HomeExtended → Timer (start new session → repeat flow)
-  6. HomeExtended → Reward Redemption (select reward → confirm → return)
-  7. Protected Route Redirect (direct `/timer` URL → redirect to `/`)
-  8. Points Cap Warning (`pointsBalance >= 10000` → show inline warning)
+- Defined as the 9 enumerated paths in Section 3.1 User Flow diagram + notes:
+   1. Welcome → HomeBase (initial load → dismiss → Home Screen Base)
+   2. HomeBase → Timer (start focus session → active Timer Screen)
+   3. Timer → EndSession (end session → calculate points)
+   4. EndSession → HomeExtended (points earned → Home Screen Extended)
+   5. HomeExtended → Timer (start new session → repeat flow)
+   6. HomeExtended → Reward Redemption → Confirm (select reward → confirm → return)
+   7. HomeExtended → Reward Redemption → Cancel (select reward → cancel → stay on HomeExtended)
+   8. Protected Route Redirect (direct `/timer` URL → redirect to `/`)
+   9. Points Cap Warning (`pointsBalance >= 10000` → show inline warning)
 - Verified via integration tests in `src/__tests__/`
 
 **Coverage Exclusions**: Third-party dependencies, type definitions, build configuration, Tier 1 (Pure Presentational) and Tier 2 (Data Display) components
