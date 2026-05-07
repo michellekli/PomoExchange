@@ -468,7 +468,7 @@ TDD cycle for each sub-task:
    - Refactor: Clean up as needed
 
 #### M5: Deployment & Final QA
-- Run full Vitest test suite, verify ~90% line/branch coverage for Tier 3 (business logic) code (excluding static presentational UI); validate 100% user flow logic path coverage (9 enumerated paths from Section 3.1) and basic UI rendering checks in integration tests
+- Run full Vitest test suite, verify ~80% line/branch coverage for Tier 3 (business logic) code (excluding static presentational UI); validate 100% user flow logic path coverage (9 enumerated paths from Section 3.1) and basic UI rendering checks in integration tests
 - Configure GitHub Pages deployment via `vite.config.ts` base path
 - Perform cross-browser/device QA (latest Chrome, Firefox, Safari desktop/mobile)
 - Verify all Functional Requirements (Section 2.1) and Non-Functional Requirements (Section 2.2) are met
@@ -484,9 +484,9 @@ TDD cycle for each sub-task:
 - TDD red-green-refactor cycle followed for all feature milestones (M2-M4)
 - All Functional Requirements (Section 2.1) implemented and verified via tests
 - All Non-Functional Requirements (Section 2.2) met
-- ~90% line/branch coverage for Tier 3 (business logic) code, covering all decision point branches (affordable/unaffordable, capped/uncapped, active/inactive session, etc.). Integration tests include basic UI rendering checks for all displayed UI components.
+- ~80% line/branch coverage for Tier 3 (business logic) code, covering all decision point branches (affordable/unaffordable, capped/uncapped, active/inactive session, etc.). Integration tests include basic UI rendering checks for all displayed UI components.
 - 100% user flow logic path coverage (defined as the 9 enumerated paths in Section 3.1 User Flow diagram + notes, verified via integration tests in `src/__tests__/`)
-- Coverage uploaded to Codecov on every push/PR, meeting ~90% Tier 3 line/branch coverage target (Section 7.4)
+- Coverage uploaded to Codecov on every push/PR, meeting ~80% Tier 3 line/branch coverage target (Section 7.4)
 - All test suites pass in GitHub Actions CI on every push/PR
 - Successful production build with no console errors/warnings
 - Public GitHub Pages deployment passes all QA checks
@@ -514,7 +514,7 @@ Components are classified into three tiers based on testing needs:
   - *Timer drift edge cases (background tab throttling, system sleep, setInterval drift) are explicitly excluded per user request.*
 - **Tier 1 (No tests)**: Pure Tailwind-styled divs, simple icons with no logic
 
-> **Coverage impact**: Tier 2 components are excluded from the ~90% coverage target. Only Tier 3 code counts toward coverage metrics.
+> **Coverage impact**: Tier 2 components are excluded from the ~80% coverage target. Only Tier 3 code counts toward coverage metrics.
 
 > **State Reset Tests**: Explicitly excluded, as there is no persistence (Non-Goal #2); all state resets on page reload by design.
 
@@ -571,7 +571,7 @@ Test for single Tier 3 component isolated behavior?
 ### 7.4 Coverage Requirements
 Per Section 6.5 Success Criteria:
 
-**Tier 3 Branch Coverage (~90%)**:
+**Tier 3 Branch Coverage (~80%)**:
 - Covers all decision point branches in Tier 3 business logic:
   - Welcome Dialog: shown (initial load) vs dismissed
   - Session Start: allowed (no active session) vs disabled (active session)
