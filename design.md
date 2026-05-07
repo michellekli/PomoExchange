@@ -23,20 +23,22 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
    - This gives users flexibility for real-world interruptions without creating pressure to optimize around the timer
 
 3. Points Calculation
-   - User receives points when ending a focus session
-   - Points formula: `points = elapsedMinutes * pointsPerMinute`
-   - Default pointsPerMinute = 0.05
-   - User can set the number of points earned per minute elapsed
-   - The pointsPerMinute setting persists across focus sessions within the same app session
-   - Points are capped at 10,000
-   - If earning points would exceed the cap, the user receives points only up to 10,000
-   - User is notified before starting a focus session when at cap
+  - User receives points when ending a focus session
+  - Points formula: `points = elapsedMinutes * (pointsNumerator / pointsDenominator)`
+  - Default: `pointsNumerator = 1`, `pointsDenominator = 20` (yields 0.05 points/minute)
+  - User sets points per minute via two integer-only numeric inputs: numerator and denominator (pointsPerMinute = numerator / denominator)
+  - `pointsNumerator` min=1, max=3; enforced via HTML input `min`/`max` attributes (no extra JS validation)
+  - `pointsDenominator` min=1, max=75; enforced via HTML input `min`/`max` attributes (no extra JS validation)
+  - `pointsNumerator` and `pointsDenominator` settings persist across focus sessions within the same app session
+  - Points are capped at 10,000
+  - If earning points would exceed the cap, the user receives points only up to 10,000
+  - User is notified before starting a focus session when at cap
 
 4. Reward System
    - Three predefined reward tiers:
-     - Small: 5 minutes (suggestions: Stretching, Get a snack, Walk around)
-     - Medium: 10 minutes (suggestions: Walk outside, Quick workout, YouTube video)
-     - Large: 15 minutes (suggestions: Watching half a TV show, Quick nap)
+   - Small: 5 minutes (suggestions: Stretching, Get a snack, Walk around)
+   - Medium: 10 minutes (suggestions: Walk outside, Quick workout, YouTube video)
+   - Large: 15 minutes (suggestions: Watching half a TV show, Quick nap)
    - Each tier displays suggested duration and example activities
    - User self-selects how to reward themselves within the chosen tier
    - Reward costs:
@@ -65,6 +67,7 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
    - UI should be minimal to prevent distractions during focus session
    - Animations should guide user through key actions
    - Timer should display time remaining during focus session
+   - Accessibility: All interactive components meet WCAG 2.1 AA standards, validated via Playwright-only automated tests with no snapshot testing (Section 7.2)
 
 2. Data Persistence
    - All state is lost on page close/reload
@@ -140,9 +143,11 @@ flowchart TD
 | **Reward History Bar** | Displayed inline on Extended Home after first reward redemption as a row of tier-differentiated shapes: Small=triangle, Medium=square, Large=pentagon. Hover (desktop) or tap (mobile) reveals redemption timestamp, tier, and points cost. Scoped to current app session only. |
 | **Focus History List** | Focus session history for only the current app session |
 | **History Sections** | Reward History Bar and Focus History List are inline sections of the Home Extended screen, not separate navigable views or pages. |
-| **Reward Confirmation** | Triggered when selecting an affordable reward from the inline Reward Catalog. Implemented as `RewardConfirmationModal` (modal overlay on Home Screen), not a separate screen. Confirming deducts points and returns to Home Extended. |
+| **Reward Confirmation** | Triggered when selecting an affordable reward from the inline Reward Catalog. Implemented as `RewardConfirmationModal` (modal overlay on Home Screen), not a separate screen. Confirming deducts points and returns to Home Extended; canceling closes modal with no changes. |
 | **Points Cap Warning** | Persistent inline warning displayed near the "Start Focus Session" button on Home Screen (Base/Extended) when `pointsBalance >= 10000`. No dismiss option; hidden automatically when points drop below 10k (via reward redemption). Informs user they will earn 0 points for focus sessions while at cap. |
 | **Route Guards** | `/timer` route is protected by `ProtectedRoute` wrapper. If user navigates to `/timer` when `!isSessionActive` (e.g., direct URL access, page reload), they are automatically redirected to `/` (Home Screen). |
+
+> **Flow Path Reference**: The 9 enumerated paths above map to the "user flow logic path coverage" metric in Section 6.5/7.4.
 
 ### 3.2 Technical Stack
 
@@ -154,12 +159,12 @@ flowchart TD
 | Build Tool | Vite | TBD | Fast HMR, optimized for React |
 | CSS Framework | Tailwind CSS | TBD | Utility-first, consistent styling |
 | Language | TypeScript | TBD | Type safety, better IDE support |
-| Testing | Vitest (Browser Mode) | TBD | Fast, ESM-first, runs tests in real browsers |
+| Testing | Vitest (Node + Browser Mode) | TBD | Fast, ESM-first, unit tests in Node, component/integration in real browsers |
 | Deployment | GitHub Pages | - | Static hosting, free |
 
 ### 3.3 State Management Strategy
 - Client-Only Application: All state is managed client-side without server storage
-- Session State: User-configured minutes for focus session, active session start time (for elapsed time calculation), points balance, points earned per minute (persists within the current app session), reward history (for current app session only), focus session history (for current app session only)
+- Session State (persists within the current app session only): user-configured minutes for focus session, active session start time (for elapsed time calculation), points balance, pointsNumerator, pointsDenominator, reward history, focus session history
 - No backend storage
 
 ### 3.4 Design Constraints
@@ -197,7 +202,7 @@ App
 | Component | Responsibility |
 |-----------|---------------|
 | `WelcomeDialog` | Shown once per app session (on initial page load of each app session per Section 2.5); explains time → points → rewards flow. Resets to un-dismissed on page reload/navigation away per Section 2.2 NFR #2 (no persistent storage). |
-| `SessionConfig` | Duration input (minutes) and points/minute slider/input; disabled during active session. Contains "Start Focus Session" button. Conditionally renders a persistent inline cap warning near the Start button when `state.pointsBalance >= 10000`: *"You've reached the 10,000 points cap! Focus sessions will earn 0 points until you redeem rewards."* |
+| `SessionConfig` | Duration input (minutes) and two integer-only numeric inputs for points numerator/denominator (side-by-side); inputs disabled during active session. Contains "Start Focus Session" button. Conditionally renders a persistent inline cap warning near the Start button when `state.pointsBalance >= 10000`: *"You've reached the 10,000 points cap! Focus sessions will earn 0 points until you redeem rewards."* |
 | `PointsDisplay` | Shows current point balance; hidden until first session completed |
 | `FocusHistorySection` | Expandable section for focus history; collapsed by default |
 | `FocusHistoryHeader` | Shows section title and expand/collapse toggle |
@@ -240,13 +245,16 @@ interface AppState {
   sessionStartTime: Date | null;
   sessionConfig: {
     durationMinutes: number;
-    pointsPerMinute: number;
+    pointsNumerator: number;
+    pointsDenominator: number;
   };
   welcomeDismissed: boolean;
 }
 
 const POINTS_CAP = 10000;
-const DEFAULT_POINTS_PER_MINUTE = 0.05;
+const DEFAULT_POINTS_NUMERATOR = 1;
+const DEFAULT_POINTS_DENOMINATOR = 20; // Yields 0.05 points/minute (1/20)
+const MAX_POINTS_PER_MINUTE = 3;
 
 const REWARD_TIERS = {
   small:  { duration: 5,  cost: 1, suggestions: ['Stretching', 'Get a snack', 'Walk around'] },
@@ -268,9 +276,10 @@ interface AppStateContextValue {
 type AppAction =
   | { type: 'DISMISS_WELCOME' }
   | { type: 'SET_DURATION'; payload: number }
-  | { type: 'SET_POINTS_PER_MINUTE'; payload: number }
-  | { type: 'START_SESSION' }
-  | { type: 'END_SESSION' }
+  | { type: 'SET_POINTS_NUMERATOR'; payload: number }
+  | { type: 'SET_POINTS_DENOMINATOR'; payload: number }
+  | { type: 'START_SESSION'; payload?: { startTime?: Date } }
+  | { type: 'END_SESSION'; payload?: { endTime?: Date } }
   | { type: 'REDEEM_REWARD'; payload: { tier: RewardTier } };
 ```
 
@@ -285,7 +294,8 @@ const initialState: AppState = {
   sessionStartTime: null,
   sessionConfig: {
     durationMinutes: 25,
-    pointsPerMinute: 0.05,
+    pointsNumerator: DEFAULT_POINTS_NUMERATOR,
+    pointsDenominator: DEFAULT_POINTS_DENOMINATOR,
   },
   welcomeDismissed: false,
 };
@@ -294,9 +304,10 @@ const initialState: AppState = {
 **Reducer cases:**
 - `DISMISS_WELCOME`: Sets `welcomeDismissed: true` for the current app session; resets to false on page reload (new app session) due to no persistent storage (Section 2.4 Non-Goal #2).
 - `SET_DURATION`: Updates `sessionConfig.durationMinutes`; ignored if `isSessionActive: true`
-- `SET_POINTS_PER_MINUTE`: Updates `sessionConfig.pointsPerMinute`; ignored if `isSessionActive: true`
-- `START_SESSION`: Sets `isSessionActive: true`, `sessionStartTime: new Date()`
-- `END_SESSION`: Calculates `elapsedMinutes` as (session end time - `sessionStartTime`) in minutes (retain fractional values). Calculates `pointsEarned` as `elapsedMinutes * state.sessionConfig.pointsPerMinute`, capped to ensure `state.pointsBalance + pointsEarned` does not exceed `POINTS_CAP` (10,000) per Section 2.1. Appends new `FocusSession` entry with `elapsedMinutes` set to the calculated value and `pointsEarned` set to the capped value. Sets `isSessionActive: false`, `sessionStartTime: null`. (Matches Section 4.6 algorithm)
+- `SET_POINTS_NUMERATOR`: Updates `sessionConfig.pointsNumerator` to payload (integer ≥1, clamped via HTML input min/max); ignored if `isSessionActive: true`
+- `SET_POINTS_DENOMINATOR`: Updates `sessionConfig.pointsDenominator` to payload (integer ≥1, clamped via HTML input min/max); ignored if `isSessionActive: true`
+- `START_SESSION`: Sets `isSessionActive: true`, `sessionStartTime: action.payload?.startTime ?? new Date()`
+- `END_SESSION`: Extracts `endTime = action.payload?.endTime ?? new Date()`. Calculates `elapsedMinutes` as `(endTime.getTime() - state.sessionStartTime!.getTime()) / 60000` (retain fractional values, uses `calculateElapsedMinutes` helper from Section 4.6). Calculates `pointsPerMinute` as `state.sessionConfig.pointsNumerator / state.sessionConfig.pointsDenominator` (denominator ≥1 enforced by input min=1). Calculates `pointsEarned` as `elapsedMinutes * pointsPerMinute`, capped to ensure `state.pointsBalance + pointsEarned` does not exceed `POINTS_CAP` (10,000) per Section 2.1. Appends new `FocusSession` entry with `elapsedMinutes` set to the calculated value and `pointsEarned` set to the capped value. Sets `isSessionActive: false`, `sessionStartTime: null`. (Matches Section 4.6 algorithm)
 - `REDEEM_REWARD`: Checks affordability, deducts points, appends to `rewardHistory`
 
 ### 4.5 Screen Layouts
@@ -304,13 +315,13 @@ const initialState: AppState = {
 **Home Screen (Base):**
 - Centered vertically
 - Duration input field
-- Points/minute input
+- Two integer-only numeric inputs: Points Numerator, Points Denominator (side-by-side)
 - "Start Focus Session" button
 - Persistent inline points cap warning (displayed near Start Focus Session button when pointsBalance >= 10000)
 
 **Home Screen (Extended):**
 - Points balance at top
-- Duration and points/minute config (same as Base)
+- Duration and points numerator/denominator config (same as Base)
 - "Start Focus Session" button
 - Persistent inline points cap warning (displayed near Start Focus Session button when pointsBalance >= 10000)
 - Reward history bar (conditional, after first redemption)
@@ -326,12 +337,14 @@ const initialState: AppState = {
 ### 4.6 Key Algorithms
 
 **Points calculation:**
+Derived `pointsPerMinute = state.sessionConfig.pointsNumerator / state.sessionConfig.pointsDenominator` (denominator ≥1 enforced by input min=1)
 ```
-pointsEarned = min(elapsedMinutes * state.sessionConfig.pointsPerMinute, POINTS_CAP - state.pointsBalance)
+pointsEarned = min(elapsedMinutes * pointsPerMinute, POINTS_CAP - state.pointsBalance)
 ```
 - No bonus for completing full duration
 - No penalty for ending early
 - Capped at 10,000 total points
+- Maximum 3 points/minute enforced via numerator input max = 3 * denominator (HTML input attribute)
 
 **Reward affordability check:**
 ```
@@ -388,26 +401,30 @@ No batched testing phase: tests are written alongside corresponding feature code
 ### 6.3 Build Phase Details
 #### M1: Project Scaffolding & Test Setup
 - Scaffold project with `npx create-react-router@latest` (select TypeScript and Vite options when prompted)
-- Install dependencies: `tailwindcss`, `postcss`, `autoprefixer`
-- Set up Vitest browser mode: Run `npx vitest init browser` (automatically installs `@vitest/browser`, Playwright browser provider, and configures `vitest.config.ts` for browser-mode testing)
-- Define core types (`AppState`, `AppAction`, `FocusSession`, `RewardRedemption`) per Section 4.3, 4.4
+- Install dependencies: `tailwindcss`, `postcss`, `autoprefixer`, `@axe-core/playwright`, `vitest` (Node Mode for unit tests, default behavior)
+- Set up Vitest Browser Mode (component/integration tests): Run `npx vitest init browser` (automatically installs `@vitest/browser`, Playwright browser provider, and configures `vitest.config.ts` for browser-mode testing)
+- Configure Vitest to output lcov coverage format for Codecov compatibility in `vitest.config.ts`
+- Define core types (`AppState`, `AppAction`, `FocusSession`, `RewardRedemption`) per Section4.3, 4.4
 - Create folder structure: `src/components/`, `src/context/`, `src/routes/`, `src/__tests__/`
-- Write initial smoke tests to verify project setup (React renders, router works) using Vitest browser mode
+- Add npm scripts to `package.json`:
+  - `"test": "vitest run src/context/ && vitest run --browser src/components/"` (runs Node Mode unit tests + Browser Mode component tests with lcov coverage)
+  - `"test:integration": "vitest run --browser src/__tests__/"` (runs Browser Mode integration tests)
+- Write initial smoke tests to verify project setup (React renders, router works) using Vitest Browser Mode
 
 #### M2: Core Focus Session Logic (TDD)
 TDD cycle for each sub-task:
-1. **Reducer & State Logic**
-   - Red: Write failing tests for `AppStateContext` reducer cases: `START_SESSION`, `END_SESSION`, points calculation (Section 4.4, 4.6), points cap logic
-   - Green: Implement reducer and context to pass all tests
-   - Refactor: Optimize state logic if needed, keep tests passing
-2. **Timer & Session Components**
-   - Red: Write failing Vitest browser mode component tests for `TimerScreen`, `TimerDisplay`, `EndSessionButton`, `ProtectedRoute` (Section 4.1, 4.2, 4.7)
-   - Green: Implement components to pass tests
-   - Refactor: Clean up component code, keep tests passing
-3. **Session Config**
+1. **Reducer & State Logic (Vitest Node Mode)**
+   - Red: Write failing tests for `AppStateContext` reducer cases: `START_SESSION`, `END_SESSION`, `SET_POINTS_NUMERATOR`, `SET_POINTS_DENOMINATOR`, points calculation (Section 4.4, 4.6), points cap logic
+   - Green: Implement reducer and context to pass all tests (Vitest Node Mode)
+   - Refactor: Optimize state logic if needed, keep tests passing (Vitest Node Mode)
+2. **Timer & Session Components (Vitest Browser Mode)**
+   - Red: Write failing component tests for `TimerScreen`, `TimerDisplay`, `EndSessionButton`, `ProtectedRoute` (Section 4.1, 4.2, 4.7)
+   - Green: Implement components to pass tests (Vitest Browser Mode)
+   - Refactor: Clean up component code, keep tests passing (Vitest Browser Mode)
+3. **Session Config (Vitest Browser Mode)**
    - Red: Write failing tests for `SessionConfig` input handling, points cap warning (Section 4.2, 4.5)
-   - Green: Implement `SessionConfig` to pass tests
-   - Refactor: Clean up as needed
+   - Green: Implement `SessionConfig` to pass tests (Vitest Browser Mode)
+   - Refactor: Clean up as needed (Vitest Browser Mode)
 
 #### M3: Points & Reward System (TDD)
 TDD cycle for each sub-task:
@@ -436,9 +453,9 @@ TDD cycle for each sub-task:
    - Refactor: Clean up as needed
 
 #### M5: Deployment & Final QA
-- Run full Vitest test suite, verify coverage ≥ 80% for reducer logic and core algorithms
+- Run full Vitest test suite, verify ~80% line/branch coverage for Tier 3 (business logic) code (excluding static presentational UI); validate 100% user flow logic path coverage (9 enumerated paths from Section 3.1) and basic UI rendering checks in integration tests
 - Configure GitHub Pages deployment via `vite.config.ts` base path
-- Perform cross-browser/device QA (latest Chrome, Firefox, Safari desktop/mobile)
+- Run automated cross-browser test suite (Chromium, Firefox, WebKit) in GitHub Actions CI
 - Verify all Functional Requirements (Section 2.1) and Non-Functional Requirements (Section 2.2) are met
 - No new test writing in this phase; only validate existing tests and deployment
 
@@ -452,7 +469,87 @@ TDD cycle for each sub-task:
 - TDD red-green-refactor cycle followed for all feature milestones (M2-M4)
 - All Functional Requirements (Section 2.1) implemented and verified via tests
 - All Non-Functional Requirements (Section 2.2) met
-- Vitest browser mode test coverage ≥ 80% for reducer logic, core algorithms, and critical components
+- ~80% line/branch coverage for Tier 3 (business logic) code, covering all decision point branches (affordable/unaffordable, capped/uncapped, active/inactive session, etc.). Integration tests include basic UI rendering checks for all displayed UI components.
+- 100% user flow logic path coverage (defined as the 9 enumerated paths in Section 3.1 User Flow diagram + notes, verified via integration tests in `src/__tests__/`)
+- Coverage uploaded to Codecov on every push/PR, meeting ~80% Tier 3 line/branch coverage target (Section 7.4)
+- All test suites pass in GitHub Actions CI on every push/PR
 - Successful production build with no console errors/warnings
 - Public GitHub Pages deployment passes all QA checks
 - No standalone testing phase; all tests written alongside corresponding feature code
+
+## 7. Testing
+This section defines the testing strategy, tooling, scope, and validation criteria for PomoExchange, complementing the TDD methodology outlined in Section 6.1. All testing aligns with the project's Functional Requirements (Section 2.1), Non-Functional Requirements (Section 2.2), and Technical Stack (Section 3.2).
+
+### 7.1 Testing Scope
+
+| Tier | Criteria | Testing Approach | Examples |
+|------|----------|------------------|----------|
+| **Tier 1: Pure Presentational** | No logic, no interactions, no state | **No tests** | Static divs, simple icons |
+| **Tier 2: Data Display** | Renders prop data, has `data-testid`/`aria-label`, no interactions | **Integration only** | `TimerDisplay`, `FocusSessionItem` |
+| **Tier 3: Business Logic** | User interactions, conditional rendering, calculations, route protection | **Full testing** (unit + component + integration) | `RewardCatalog`, `SessionConfig`, reducer |
+
+**Coverage impact**: Only Tier 3 code counts toward ~80% coverage target. Tier 1/2 excluded.
+
+**State Reset Tests**: Explicitly excluded (Non-Goal #2). All state resets on reload by design.
+
+**Timer drift** (background tab, system sleep, setInterval) explicitly excluded per user request.
+
+### 7.2 Test Types
+
+| Test Type | Target | Scope | File Location |
+|-----------|--------|-------|---------------|
+| Unit | Tier 3: Reducer, points calculation, affordability | Vitest Node Mode, no React rendering | `src/context/*.test.ts` |
+| Component | Tier 3: UI components with business logic | Vitest Browser Mode, mocked context/router | `src/components/**/*.test.tsx` |
+| Integration | Tier 2 + Tier 3: Multi-component flows, route protection | Vitest Browser Mode, full app state | `src/__tests__/` |
+| E2E Journey | Full end-to-end user flow | Vitest Browser Mode + Playwright, full app state, no mocks except for timer mocks | `src/__tests__/e2e-full-journey.test.ts` |
+
+**Cross-Browser Automation**: Vitest Browser Mode uses Playwright provider, configured to run integration/E2E tests across Chromium, Firefox, WebKit (Safari).
+
+**Accessibility**: `@axe-core/playwright` exclusively, snapshot testing prohibited.
+
+**Mobile**: iPhone 12 Viewport Size = width: 390, height: 844. WCAG 2.1 AA touch targets ≥44×44px.
+
+**Deterministic Timing**: Unit tests use fixed payload times. Integration tests use timer mocks.
+
+**Exclusive Scope Principle**: No behavior tested in both component and integration suites. Component tests = isolated single component + mocked deps. Integration tests = multi-component flows + full app state.
+
+### 7.3 Test Configuration
+
+- **TDD**: Tests written before implementation (red-green-refactor), enforced for M2-M4.
+- **Files**: `src/context/*.test.ts` (unit), `src/components/**/*.test.tsx` (component), `src/__tests__/` (integration).
+- **State Reset**: Performed before each test.
+- **CI**: All suites run on push/PR via GitHub Actions with cross-browser matrix (Chromium, Firefox, WebKit) for integration/E2E tests. Coverage uploaded to Codecov.
+- **Browsers**: Chromium, Firefox, WebKit/Safari via Playwright.
+
+### 7.4 Coverage Requirements
+
+**Tier 3 Branch Coverage (~80%)** — all decision point branches:
+- Welcome Dialog: shown vs dismissed
+- End Session: early vs full duration
+- Points: under cap vs hits/exceeds cap
+- Reward: affordable vs unaffordable
+- Protected Route: active session vs redirect
+
+**User Flow Logic Path Coverage (100%)** — 9 enumerated paths in Section 3.1:
+1. Welcome → HomeBase (initial load → dismiss → Home Screen Base)
+2. HomeBase → Timer (start focus session → active Timer Screen)
+3. Timer → EndSession (end session → calculate points)
+4. EndSession → HomeExtended (points earned → Home Screen Extended)
+5. HomeExtended → Timer (start new session → repeat flow)
+6. HomeExtended → Reward Redemption → Confirm (select reward → confirm → return)
+7. HomeExtended → Reward Redemption → Cancel (select reward → cancel → stay on HomeExtended)
+8. Protected Route Redirect (direct `/timer` URL → redirect to `/`)
+9. Points Cap Warning (`pointsBalance >= 10000` → show inline warning)
+
+**E2E Journey Coverage (100%)** — Single test validating full flow:
+1. Welcome → dismiss → HomeBase
+2. Start focus session → TimerScreen
+3. End session → points calculated → HomeExtended
+4. Redeem reward → confirm → points deducted
+5. Repeat partial flow to verify state persistence
+
+**Exclusions**: Third-party deps, type definitions, Tier 1/2 components.
+
+### 7.5 Validation & QA
+- Full test suite run + automated cross-browser validation (Chromium, Firefox, WebKit/Safari via Playwright)
+- Regression: All tests re-run after each milestone; no new tests in M5
