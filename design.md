@@ -145,6 +145,8 @@ flowchart TD
 | **Points Cap Warning** | Persistent inline warning displayed near the "Start Focus Session" button on Home Screen (Base/Extended) when `pointsBalance >= 10000`. No dismiss option; hidden automatically when points drop below 10k (via reward redemption). Informs user they will earn 0 points for focus sessions while at cap. |
 | **Route Guards** | `/timer` route is protected by `ProtectedRoute` wrapper. If user navigates to `/timer` when `!isSessionActive` (e.g., direct URL access, page reload), they are automatically redirected to `/` (Home Screen). |
 
+> **Flow Path Reference**: The 8 enumerated paths above map to the "user flow logic path coverage" metric in Section 6.5/7.4.
+
 ### 3.2 Technical Stack
 
 | Component | Technology | Version | Rationale |
@@ -467,7 +469,8 @@ TDD cycle for each sub-task:
 - TDD red-green-refactor cycle followed for all feature milestones (M2-M4)
 - All Functional Requirements (Section 2.1) implemented and verified via tests
 - All Non-Functional Requirements (Section 2.2) met
-- ~90% line/branch coverage for Tier 3 (business logic) code; 100% user flow logic path coverage. Integration tests include basic UI rendering checks for all displayed UI components.
+- ~90% line/branch coverage for Tier 3 (business logic) code, covering all decision point branches (affordable/unaffordable, capped/uncapped, active/inactive session, etc.). Integration tests include basic UI rendering checks for all displayed UI components.
+- 100% user flow logic path coverage (defined as the 8 enumerated paths in Section 3.1 User Flow diagram + notes, verified via integration tests in `src/__tests__/`)
 - Coverage uploaded to Codecov on every push/PR, meeting ~90% Tier 3 line/branch coverage target (Section 7.4)
 - All test suites pass in GitHub Actions CI on every push/PR
 - Successful production build with no console errors/warnings
@@ -508,7 +511,6 @@ Unit tests use Vitest (Node Mode); Component and Integration tests use Vitest (B
 | Unit Tests | Tier 3: Reducer logic (`AppStateContext` cases), points calculation (Section 4.6), affordability checks | Isolated logic, no React rendering, run in Vitest Node Mode | Not applicable (no UI) | `src/context/*.test.ts` |
 | Component Tests | Tier 3: UI components with business logic (rendering, user interactions, state-driven conditional rendering) | Single component, mocked context/router. Accessibility: Use Playwright `page` object via Vitest Browser Mode → `injectAxe(page)` → `runAxe(page)` → assert `violations.length === 0` (no snapshots) | Use `page.setViewportSize({ width: 390, height: 844 })` (iPhone 12 baseline) to test mobile interactions (tap, responsive layout) for `RewardCatalog`, `WelcomeDialog` | `src/components/**/*.test.tsx` |
 | Integration Tests | Tier 2 + Tier 3: End-to-end user flow logic paths, multi-component chains, route protection. Includes Tier 2 data display validation | Full app state, real context/router, no isolated single-component tests. Accessibility: Run `runAxe(page)` at key flow states → assert 0 violations (no snapshots) | Run full user flows in mobile viewport (`page.setViewportSize({ width: 390, height: 844 })`) to validate end-to-end mobile behavior (onboarding, reward redemption) | `src/__tests__/` |
-
 | Smoke Tests | Initial project setup validation (router functionality, base renders) | Minimal sanity checks | Verify base renders in mobile viewport | `src/__tests__/` |
 
 
@@ -553,9 +555,31 @@ Test for single Tier 3 component isolated behavior?
 
 ### 7.4 Coverage Requirements
 Per Section 6.5 Success Criteria:
-- ~90% line/branch coverage for Tier 3 (business logic) code, including edge case tests; Tier 2 components are excluded from coverage metrics
-- 100% branch coverage for all user flow logic paths defined in Section 3.1 User Flow diagram
-- Coverage exclusions: Third-party dependencies, type definitions, build configuration, Tier 1 (Pure Presentational) and Tier 2 (Data Display) components
+
+**Tier 3 Branch Coverage (~90%)**:
+- Covers all decision point branches in Tier 3 business logic:
+  - Welcome Dialog: shown (initial load) vs dismissed
+  - Session Start: allowed (no active session) vs disabled (active session)
+  - End Session: early end vs full duration end
+  - Points Calculation: under cap vs hits/exceeds cap
+  - Reward Selection: affordable (modal opens) vs unaffordable (grayed out)
+  - Reward Confirmation: confirm (deduct points) vs cancel (no change)
+  - Protected Route: active session (allow access) vs no session (redirect)
+- Tier 2 components are excluded from coverage metrics
+
+**User Flow Logic Path Coverage (100%)**:
+- Defined as the 8 enumerated paths in Section 3.1 User Flow diagram + notes:
+  1. Welcome → HomeBase (initial load → dismiss → Home Screen Base)
+  2. HomeBase → Timer (start focus session → active Timer Screen)
+  3. Timer → EndSession (end session → calculate points)
+  4. EndSession → HomeExtended (points earned → Home Screen Extended)
+  5. HomeExtended → Timer (start new session → repeat flow)
+  6. HomeExtended → Reward Redemption (select reward → confirm → return)
+  7. Protected Route Redirect (direct `/timer` URL → redirect to `/`)
+  8. Points Cap Warning (`pointsBalance >= 10000` → show inline warning)
+- Verified via integration tests in `src/__tests__/`
+
+**Coverage Exclusions**: Third-party dependencies, type definitions, build configuration, Tier 1 (Pure Presentational) and Tier 2 (Data Display) components
 
 ### 7.5 Example Test Cases
 Maps to key Functional Requirements (Section 2.1). Test placement follows the Decision Tree in Section 7.2.
