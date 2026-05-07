@@ -399,18 +399,20 @@ No batched testing phase: tests are written alongside corresponding feature code
 ### 6.3 Build Phase Details
 #### M1: Project Scaffolding & Test Setup
 - Scaffold project with `npx create-react-router@latest` (select TypeScript and Vite options when prompted)
-- Install dependencies: `tailwindcss`, `postcss`, `autoprefixer`, `@axe-core/playwright`
-- Set up Vitest browser mode: Run `npx vitest init browser` (automatically installs `@vitest/browser`, Playwright browser provider, and configures `vitest.config.ts` for browser-mode testing)
+- Install dependencies: `tailwindcss`, `postcss`, `autoprefixer`, `@axe-core/playwright`, `vitest` (Node Mode for unit tests, default behavior)
+- Set up Vitest Browser Mode (component/integration tests): Run `npx vitest init browser` (automatically installs `@vitest/browser`, Playwright browser provider, and configures `vitest.config.ts` for browser-mode testing)
 - Configure Vitest to output lcov coverage format for Codecov compatibility in `vitest.config.ts`
 - Define core types (`AppState`, `AppAction`, `FocusSession`, `RewardRedemption`) per Section4.3, 4.4
 - Create folder structure: `src/components/`, `src/context/`, `src/routes/`, `src/__tests__/`
-- Add npm scripts to `package.json`: `test`, `test:integration` (per Section 7.3)
-- Write initial smoke tests to verify project setup (React renders, router works) using Vitest browser mode
+- Add npm scripts to `package.json`:
+  - `"test": "vitest run src/context/ && vitest run --browser src/components/"` (runs Node Mode unit tests + Browser Mode component tests with lcov coverage)
+  - `"test:integration": "vitest run --browser src/__tests__/"` (runs Browser Mode integration tests)
+- Write initial smoke tests to verify project setup (React renders, router works) using Vitest Browser Mode
 
 #### M2: Core Focus Session Logic (TDD)
 TDD cycle for each sub-task:
 1. **Reducer & State Logic**
-   - Red: Write failing tests for `AppStateContext` reducer cases: `START_SESSION`, `END_SESSION`, points calculation (Section 4.4, 4.6), points cap logic
+   - Red: Write failing tests for `AppStateContext` reducer cases (Vitest Node Mode): `START_SESSION`, `END_SESSION`, points calculation (Section 4.4, 4.6), points cap logic
    - Green: Implement reducer and context to pass all tests
    - Refactor: Optimize state logic if needed, keep tests passing
 2. **Timer & Session Components**
@@ -418,7 +420,7 @@ TDD cycle for each sub-task:
    - Green: Implement components to pass tests
    - Refactor: Clean up component code, keep tests passing
 3. **Session Config**
-   - Red: Write failing tests for `SessionConfig` input handling, points cap warning (Section 4.2, 4.5)
+   - Red: Write failing Vitest Browser Mode tests for `SessionConfig` input handling, points cap warning (Section 4.2, 4.5)
    - Green: Implement `SessionConfig` to pass tests
    - Refactor: Clean up as needed
 
