@@ -32,7 +32,8 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
   - `pointsNumerator` and `pointsDenominator` settings persist across focus sessions within the same app session
   - Points are capped at 10,000 total balance
   - If earning points would exceed the total balance cap, the user receives points only up to 10,000
-  - User is notified before starting a focus session when at cap
+   - User is notified before starting a focus session when at cap
+   - Points are stored as floating-point numbers. Displayed values are rounded to 2 decimal places.
 
 4. Reward System
    - Three predefined reward tiers:
@@ -133,12 +134,12 @@ flowchart TD
 | **Rewards** | Rewards require points to redeem. Points deducted upon confirmation. Reward history updated after redemption. |
 | **Affordability** | Checked at catalog display. Only affordable rewards selectable. No error screen needed. |
 | **Reward History Bar** | Displayed inline on the home screen after first reward redemption as a row of tier-differentiated shapes. Hover (desktop) or tap (mobile) reveals redemption timestamp, tier, and points cost. Scoped to current app session only. |
-| **Focus History List** | Focus session history for only the current app session. |
+| **Focus History List** | Focus session history for only the current app session. Expandable list, collapsed by default, inlined on the Home Extended screen. |
 | **History Sections** | Reward History Bar and Focus History List are inline sections of the Home Extended screen, not separate navigable views or pages. |
 | **Reward Confirmation** | Triggered when selecting an affordable reward from the inline reward catalog. Implemented as a confirmation modal overlay on the home screen. Confirming deducts points and returns to the home screen; canceling closes the modal with no changes. |
 | **Points Cap Warning** | Persistent inline warning displayed near the "Start Focus Session" button on Home Screen (Base/Extended) when `pointsBalance >= POINTS_CAP`. No dismiss option; hidden automatically when points drop below `POINTS_CAP` (via reward redemption). Informs user they will earn 0 points for focus sessions while at cap. |
 | **Navigation Away** | Navigating away from `/timer` during an active session (browser back/forward, manual URL change within the app) ends the session and awards points based on elapsed time, identical to the End Session button. No confirmation dialog. |
-| **Points Celebration Overlay** | Center-screen congratulations card over a full-screen backdrop. Shows points earned with a celebratory animation (points counter + confetti). Auto-dismisses after ~3 seconds, revealing Home Extended. |
+| **Points Celebration Overlay** | Center-screen congratulations card over a full-screen backdrop. Shows points earned with a celebratory animation (points counter + confetti). Auto-dismisses after ~3 seconds, revealing Home Extended. When the user is at the points cap, fires with "0 points earned" and a message indicating they have reached the 10,000-point maximum. |
 
 ### 3.2 State Management
 - All state held in memory (§4.4)
@@ -178,7 +179,7 @@ The app has two screens: **Home** and **Timer**.
 - Points display (hidden until first session)
 - Reward catalog (three predefined tiers: Small / Medium / Large; hidden until first session)
 - Reward history bar (hidden until first redemption)
-- Focus history list (hidden until first session)
+- Focus history list (hidden until first session; expandable/collapsible, collapsed by default)
 
 **Timer screen** contains:
 - Time remaining display with progress indicator
@@ -196,16 +197,16 @@ The app has two screens: **Home** and **Timer**.
 | Reward history bar | Inline row of tier-differentiated shapes. Hidden until first redemption. Hover/tap reveals timestamp, tier, cost. Scoped to current session only. |
 | Reward catalog | Lists three tiers with duration, cost, and example activities. Unaffordable rewards are disabled with "Need X more points" message. Selecting an affordable reward shows a confirmation step before deducting points. |
 | Timer | Countdown timer with progress indicator. End action triggers points calculation. |
-| Points celebration | Full-screen overlay showing points earned with celebratory animation. Auto-dismisses after a brief timeout. |
+| Points celebration | Full-screen overlay showing points earned with celebratory animation. Auto-dismisses after a brief timeout. Fires even when 0 points are earned at cap, displaying a cap-maximum message. |
 
 ### 4.3 Data Concepts
 
-**FocusSession**: elapsed minutes, points earned, timestamp
+**FocusSession**: elapsed minutes, points earned (float, displayed rounded to 2dp), timestamp
 
 **RewardRedemption**: tier redeemed, points cost, timestamp
 
 **App state**:
-- points balance
+- points balance (float, displayed rounded to 2dp)
 - list of past focus sessions
 - list of past reward redemptions
 - last session's points earned (cleared after celebration dismissed)
@@ -237,7 +238,7 @@ All state is held in memory and lost on page close/reload.
 | Change numerator | Points numerator updated; ignored during active session |
 | Change denominator | Points denominator updated; ignored during active session |
 | Start session | Session becomes active; start time recorded |
-| End session | Points calculated from elapsed time (capped at 10,000 total balance), added to balance; session appended to history; session deactivated |
+| End session | Points calculated from elapsed time (capped at 10,000 total balance), added to balance; session appended to history; session deactivated; points celebration overlay shown until auto-dismissed; celebration fires even at cap (0 points, cap-reached message) |
 | Redeem reward | Points deducted if balance ≥ cost; redemption appended to history |
 | Dismiss celebration | Clears last session points earned |
 
@@ -246,7 +247,7 @@ All state is held in memory and lost on page close/reload.
 | Screen | Key Elements | Notes |
 |--------|-------------|-------|
 | Home (Base) | Duration input, points numerator/denominator, start action, cap warning | Shown before first session |
-| Home (Extended) | Points balance, reward catalog, reward history bar, collapsible focus history | After first session |
+| Home (Extended) | Points balance, reward catalog, reward history bar (after first redemption), collapsible focus history, + Home (Base) | After first session |
 | Timer | Full-screen, MM:SS countdown, progress indicator, end action | Redirects to Home when no active session |
 | Points celebration | Full-screen backdrop, centered card with point total and congratulations | Overlaid on Home Extended; auto-dismisses |
 
@@ -320,7 +321,7 @@ I evaluated the following alternatives to the chosen design and technical decisi
 | Tier 2 | Renders data from props, read-only display | Tested via integration with parent |
 | Tier 3 | Business logic, user interactions, state transitions, conditional rendering, calculations | ~80% branch coverage |
 - All user flow logic paths (§3.1): 100% coverage
-- Each behavior is tested exactly once
+- Each behavior is tested minimally
 
 ## 7. Testing
 
