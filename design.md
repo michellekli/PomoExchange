@@ -155,7 +155,7 @@ flowchart TD
 | Build Tool | Vite | TBD | Fast HMR, optimized for React |
 | CSS Framework | Tailwind CSS | TBD | Utility-first, consistent styling |
 | Language | TypeScript | TBD | Type safety, better IDE support |
-| Testing | Vitest (Browser Mode) | TBD | Fast, ESM-first, runs tests in real browsers |
+| Testing | Vitest (Node + Browser Mode) | TBD | Fast, ESM-first, unit tests in Node, component/integration in real browsers |
 | Deployment | GitHub Pages | - | Static hosting, free |
 
 ### 3.3 State Management Strategy
@@ -404,7 +404,7 @@ No batched testing phase: tests are written alongside corresponding feature code
 - Configure Vitest to output lcov coverage format for Codecov compatibility in `vitest.config.ts`
 - Define core types (`AppState`, `AppAction`, `FocusSession`, `RewardRedemption`) per Section4.3, 4.4
 - Create folder structure: `src/components/`, `src/context/`, `src/routes/`, `src/__tests__/`
-- Add npm scripts to `package.json`: `test`, `test:integration`, `test:perf` (per Section 7.3)
+- Add npm scripts to `package.json`: `test`, `test:integration` (per Section 7.3)
 - Write initial smoke tests to verify project setup (React renders, router works) using Vitest browser mode
 
 #### M2: Core Focus Session Logic (TDD)
@@ -496,18 +496,20 @@ Components are classified into three tiers based on testing needs:
 
 > **Coverage impact**: Tier 2 components are excluded from the ~90% coverage target. Only Tier 3 code counts toward coverage metrics.
 
+> **State Reset Tests**: Explicitly excluded, as there is no persistence (Non-Goal #2); all state resets on page reload by design.
+
 ### 7.2 Test Types
-All test types use Vitest (Browser Mode) per Section 3.2, with Playwright as the browser provider (configured in M1, Section 6.3):
+Unit tests use Vitest (Node Mode); Component and Integration tests use Vitest (Browser Mode) with Playwright as the browser provider (configured in M1, Section 6.3):
 
 | Test Type | Target | Scope | Mobile Testing Scope | File Location |
 |-----------|--------|-------|---------------------|---------------|
-| Unit Tests | Tier 3: Reducer logic (`AppStateContext` cases), points calculation (Section 4.6), affordability checks | Isolated logic, no React rendering | Not applicable (no UI) | `src/context/*.test.ts` |
+| Unit Tests | Tier 3: Reducer logic (`AppStateContext` cases), points calculation (Section 4.6), affordability checks | Isolated logic, no React rendering, run in Vitest Node Mode | Not applicable (no UI) | `src/context/*.test.ts` |
 | Component Tests | Tier 3: UI components with business logic (rendering, user interactions, state-driven conditional rendering) | Single component, mocked context/router. Accessibility: Use Playwright `page` object via Vitest Browser Mode → `injectAxe(page)` → `runAxe(page)` → assert `violations.length === 0` (no snapshots) | Use `page.setViewportSize({ width: 390, height: 844 })` (iPhone 12 baseline) to test mobile interactions (tap, responsive layout) for `RewardCatalog`, `WelcomeDialog` | `src/components/**/*.test.tsx` |
 | Integration Tests | Tier 2 + Tier 3: End-to-end user flow logic paths, multi-component chains, route protection. Includes Tier 2 data display validation | Full app state, real context/router, no isolated single-component tests. Accessibility: Run `runAxe(page)` at key flow states → assert 0 violations (no snapshots) | Run full user flows in mobile viewport (`page.setViewportSize({ width: 390, height: 844 })`) to validate end-to-end mobile behavior (onboarding, reward redemption) | `src/__tests__/` |
-| Performance Tests | Tier 3: Reducer benchmarks, large-state rendering thresholds | Benchmark metrics, CI automatic runs | Not applicable | `src/__tests__/performance.test.ts` |
+
 | Smoke Tests | Initial project setup validation (router functionality, base renders) | Minimal sanity checks | Verify base renders in mobile viewport | `src/__tests__/` |
 
-> **Flaky Test Flagging**: Browser-based rendering performance tests are marked with `@flaky` tag and use Vitest retry (max 2 attempts) in CI. Stable unit benchmarks require no retries.
+
 
 > **Accessibility Testing**: Uses `@axe-core/playwright` exclusively (no jest-axe). Snapshot testing is prohibited: no Playwright `page.accessibility.snapshot()` and no Vitest `toMatchSnapshot()`.
 
@@ -530,7 +532,7 @@ Test for single Tier 3 component isolated behavior?
 - File structure (defined in M1, Section 6.3):
   - `src/context/*.test.ts` for reducer/state logic unit tests (Tier 3)
   - `src/components/**/*.test.tsx` for Tier 3 component tests only (no test files for Tier 1 or Tier 2 components)
-  - `src/__tests__/performance.test.ts` for performance tests
+
   - `src/__tests__/` for integration and smoke tests
 - **Accessibility Testing**: Add `@axe-core/playwright` dependency (M1, Section 6.3). All a11y checks use Playwright `runAxe(page)` → assert `violations.length === 0`. **Snapshot testing is prohibited**: no Playwright `page.accessibility.snapshot()` and no Vitest `toMatchSnapshot()`.
 - **Mobile Testing**: Uses Playwright `page.setViewportSize()` in Vitest Browser Mode; standard mobile viewport baseline: `{ width: 390, height: 844 }` (iPhone 12). No separate mobile test runner. Snapshot testing is prohibited for mobile layouts.
@@ -539,25 +541,25 @@ Test for single Tier 3 component isolated behavior?
   - Integration tests: `flow-name.test.ts` (tests multi-component flows)
 - **TDD review check**: During code review, verify no duplicate behavior coverage between component and integration test suites for the same feature.
 - **CI Configuration**: All test suites run automatically on all push/PR events in GitHub Actions:
-  - Unit + Component tests: `npm run test` (runs `src/context/*.test.ts` + `src/components/**/*.test.tsx` with lcov coverage)
-  - Integration tests: `npm run test:integration` (runs `src/__tests__/` excluding performance tests)
-  - Performance tests: `npm run test:perf` (existing, runs `src/__tests__/performance.test.ts` with no coverage)
+  - Unit + Component tests: `npm run test` (runs `src/context/*.test.ts` in Vitest Node Mode + `src/components/**/*.test.tsx` in Vitest Browser Mode, with lcov coverage)
+  - Integration tests: `npm run test:integration` (runs `src/__tests__/` in Vitest Browser Mode)
+
   - Coverage uploaded to Codecov via `codecov/codecov-action@v4`; fallback artifacts uploaded to GitHub Actions.
   - Playwright browsers installed via `npx playwright install --with-deps` in CI.
-- **Flaky Test Handling**: Tests tagged `@flaky` use Vitest config `retry: 2` in CI environments only.
+
 - Coverage reporting via Vitest `--coverage` flag, integrated into M5 Final QA (Section 6.3).
 
 ### 7.4 Coverage Requirements
 Per Section 6.5 Success Criteria:
-- ~90% line/branch coverage for Tier 3 (business logic) code, including edge case and performance tests; Tier 2 components are excluded from coverage metrics
+- ~90% line/branch coverage for Tier 3 (business logic) code, including edge case tests; Tier 2 components are excluded from coverage metrics
 - 100% branch coverage for all user flow logic paths defined in Section 3.1 User Flow diagram
 - Coverage exclusions: Third-party dependencies, type definitions, build configuration, Tier 1 (Pure Presentational) and Tier 2 (Data Display) components
 
 ### 7.5 Example Test Cases
 Maps to key Functional Requirements (Section 2.1). Test placement follows the Decision Tree in Section 7.2.
 
-**Tier 3 - Component Tests** (`src/components/**/*.test.tsx`):
-1. **Reducer Unit Tests**
+**Tier 3 - Unit & Component Tests** (`src/context/*.test.ts` + `src/components/**/*.test.tsx`):
+1. **Unit Tests (Vitest Node Mode)**
    - Verify `END_SESSION` action calculates `pointsEarned` correctly, enforces 10,000 points cap (FR3)
    - Verify `REDEEM_REWARD` deducts points only if affordable, appends entry to `rewardHistory` (FR4)
    - Verify `START_SESSION` sets `isSessionActive: true` and `sessionStartTime` to current Date (FR2)
@@ -594,12 +596,6 @@ Maps to key Functional Requirements (Section 2.1). Test placement follows the De
 - Verify `END_SESSION` handles fractional minutes (e.g., 30-second session → 0.5 min × 0.05 = 0.025 points) — use payload times 30 seconds apart
 - Verify `ProtectedRoute` redirects to `/` on direct `/timer` URL access with no active session (Section 4.7)
 - Verify rapid start/end session clicks do not cause race conditions (SessionConfig button disable logic) (Section 4.2)
-
-**Performance Tests (Tier 3, Integration/Unit)**:
-   - **Stable (no retry needed)**: Reducer processes 100+ focus sessions + 50+ redemptions in <50ms (unit benchmark)
-   - **Stable (no retry needed)**: Points calculation for 120-minute session completes in <10ms (unit benchmark)
-   - **@flaky (2 retries in CI)**: `FocusHistoryList` renders 100+ entries in <100ms (browser performance API)
-   - **@flaky (2 retries in CI)**: `RewardHistoryBar` renders 50+ shapes in <50ms (browser performance API)
 
 **Tier 2 - Integration Tests Only** (`src/__tests__/`):
 3. **Integration Tests** (Multi-component flows with full app state)
@@ -648,9 +644,3 @@ Maps to key Functional Requirements (Section 2.1). Test placement follows the De
 - Complements M5 (Section 6.2): Full test suite run, cross-browser validation (latest Chrome, Firefox, Safari desktop/mobile)
 - Manual QA: Verify all Non-Functional Requirements (Section 2.2): minimal Timer Screen UI, no persistent state across page reloads
 - Regression testing: All tests re-run after each milestone; no new test writing in M5 (Section 6.3)
-
-#### Flaky Test Registry
-| Flaky Test | Reason for Flakiness | Mitigation |
-|------------|----------------------|------------|
-| `FocusHistoryList` 100+ entry render | Variable browser rendering times across CI runs | `@flaky` tag, max 2 retries in CI |
-| `RewardHistoryBar` 50+ shape render | Variable browser rendering times across CI runs | `@flaky` tag, max 2 retries in CI |
