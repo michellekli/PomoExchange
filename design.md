@@ -300,65 +300,47 @@ I evaluated the following alternatives to the chosen design and technical decisi
 | Authentication | Optional user accounts for cross-device sync | Cross-device progress tracking | Violates Non-Goal #1, requires backend/storage infrastructure | App is explicitly client-only with no backend or user accounts |
 | Reward Redemption | No points deduction (unlimited redemptions) | Higher initial user engagement | Breaks earn-spend gamification loop, no incentive to earn more points | Points deduction is critical to the core gamification value proposition |
 
-## 6. Implementation Plan
+## 6. Architecture & Code Organization
 
-### 6.1 Approach
-Red-green-refactor TDD for all feature work (M2-M4). Tests written alongside code, not deferred.
-1. **Red**: Write failing unit/component tests for the target functionality first
-2. **Green**: Implement minimal code to make tests pass
-3. **Refactor**: Clean up code while keeping tests passing
+### 6.1 Technology Stack
+| Layer | Decision |
+|-------|----------|
+| Framework | React Router + TypeScript (Vite) |
+| Styling | Tailwind CSS |
+| Unit Testing | Vitest (Node Mode) |
+| Component/Integration/E2E | Vitest Browser Mode with Playwright provider |
+| Accessibility | `@axe-core/playwright` (snapshot testing prohibited) |
+| Deployment | Static site (GitHub Pages) |
 
-### 6.2 Milestones
-| Milestone | Description | Duration | Deps |
-|-----------|-------------|----------|------|
-| M1: Scaffolding & Test Setup | Init React Router + TS project, configure Tailwind + Vitest Browser Mode (Playwright), create folder structure per §4.1, define core types per §4.3 | 2-3d | None |
-| M2: Core Focus Logic (TDD) | Reducer, TimerScreen, TimerDisplay, EndSessionButton, ProtectedRoute, SessionConfig | 4-5d | M1 |
-| M3: Points & Reward System (TDD) | PointsDisplay, FocusHistorySection, RewardCatalog, TierCard, ConfirmationModal, RewardHistoryBar, RewardShape | 4-5d | M2 |
-| M4: Onboarding & UI Polish (TDD) | WelcomeDialog, responsive layouts, animations | 3-4d | M3 |
-| M5: Deployment & QA | Full suite pass, GitHub Pages deploy, cross-browser QA (Chromium/Firefox/WebKit) | 2-3d | M4 |
+### 6.2 Module Organization
+```
+src/
+  context/     — Reducer, state types, actions (§4.3, 4.4)
+  components/  — Presentational and business-logic components
+  __tests__/   — Integration and E2E tests
+```
+- One component per file, co-located tests in `components/` for component tests
+- Integration/E2E tests in `__tests__/` to distinguish scope
+- Unit tests for reducer logic live in `context/`
 
-### 6.3 Build Phase Details
+### 6.3 State Architecture
+- Single reducer (`useReducer` + Context) managing all app state per §4.4
+- No third-party state library — scope is small enough for built-in React primitives
 
-**M1: Scaffolding & Test Setup**
-- Scaffold React Router + TypeScript project (uses Vite under the hood)
-- Add Tailwind CSS, Vitest, `@vitest/browser` (Playwright provider), `@axe-core/playwright`
-- Configure Vitest Browser Mode and coverage output
-- Define `AppState`, `AppAction`, `FocusSession`, `RewardRedemption` (§4.3, 4.4)
-- Create project folders
-- Wire up npm scripts: unit tests (Node Mode), component/integration tests (Browser Mode)
-- Smoke test: verify React renders + router works
+### 6.4 Routing
+- Two routes: `/` (Home) and `/timer` (Timer)
+- `/timer` redirects to `/` when no active session (Protected Route pattern)
+- Navigation away from `/timer` during active session triggers session end (§4.7)
 
-**M2: Core Focus Session Logic (TDD)**
-- Reducer tests (Node Mode)
-- Component tests (Browser Mode)
-
-**M3: Points & Reward System (TDD)**
-- PointsDisplay, FocusHistorySection/FocusSessionItem rendering
-- RewardCatalog affordability logic, RewardTierCard, RewardConfirmationModal points deduction
-- RewardHistoryBar + RewardShape hover/tap interactions
-
-**M4: Onboarding & UI Polish (TDD)**
-- WelcomeDialog rendering + dismiss
-- Responsive reward grid (3-col → 1-col), TimerScreen distraction-free layout, animations
-
-**M5: Deployment & Final QA**
-- Full suite pass, verify ~80% Tier 3 line/branch coverage, 100% user flow path coverage (§3.1)
-- Configure GitHub Pages
-- CI matrix (Chromium, Firefox, WebKit); no new tests written in M5
-
-### 6.4 Dependencies & Risks
-- Finalize stack versions before M1
-- All state client-side (§2.4); no external state deps
-- Validate Vitest Browser Mode + Playwright provider on target browsers
-- Enforce red-green-refactor; no skipping tests for UI
-
-### 6.5 Success Criteria
-- TDD cycle followed for M2-M4
-- All §2.1 FRs and §2.2 NFRs implemented and tested
-- ~80% Tier 3 line/branch coverage; 100% user flow path coverage (verified in CI)
-- Successful production build, no console errors
-- Public GitHub Pages deployment passes QA
-- No standalone testing phase
+### 6.5 Testing Strategy
+| Tier | Criteria | Coverage Target |
+|------|----------|-----------------|
+| Tier 1 | Pure presentational, no logic | Not tested |
+| Tier 2 | Data display, renders props | Integration only |
+| Tier 3 | Business logic, interactions, calculations | ~80% branch coverage |
+- User flow logic paths: 100% coverage (§3.1 flow diagram)
+- No behavior tested in both component and integration suites (Exclusive Scope Principle)
+- Three tiers defined in §7.1; test types and locations defined in §7.2
 
 ## 7. Testing
 This section defines the testing strategy, tooling, scope, and validation criteria for PomoExchange, complementing the TDD methodology outlined in Section 6.1. All testing aligns with the project's Functional Requirements (Section 2.1), Non-Functional Requirements (Section 2.2).
