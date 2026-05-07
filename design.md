@@ -413,18 +413,18 @@ No batched testing phase: tests are written alongside corresponding feature code
 
 #### M2: Core Focus Session Logic (TDD)
 TDD cycle for each sub-task:
-1. **Reducer & State Logic**
-   - Red: Write failing tests for `AppStateContext` reducer cases (Vitest Node Mode): `START_SESSION`, `END_SESSION`, points calculation (Section 4.4, 4.6), points cap logic
-   - Green: Implement reducer and context to pass all tests
-   - Refactor: Optimize state logic if needed, keep tests passing
-2. **Timer & Session Components**
-   - Red: Write failing Vitest browser mode component tests for `TimerScreen`, `TimerDisplay`, `EndSessionButton`, `ProtectedRoute` (Section 4.1, 4.2, 4.7)
-   - Green: Implement components to pass tests
-   - Refactor: Clean up component code, keep tests passing
-3. **Session Config**
-   - Red: Write failing Vitest Browser Mode tests for `SessionConfig` input handling, points cap warning (Section 4.2, 4.5)
-   - Green: Implement `SessionConfig` to pass tests
-   - Refactor: Clean up as needed
+1. **Reducer & State Logic (Vitest Node Mode)**
+   - Red: Write failing tests for `AppStateContext` reducer cases: `START_SESSION`, `END_SESSION`, points calculation (Section 4.4, 4.6), points cap logic
+   - Green: Implement reducer and context to pass all tests (Vitest Node Mode)
+   - Refactor: Optimize state logic if needed, keep tests passing (Vitest Node Mode)
+2. **Timer & Session Components (Vitest Browser Mode)**
+   - Red: Write failing component tests for `TimerScreen`, `TimerDisplay`, `EndSessionButton`, `ProtectedRoute` (Section 4.1, 4.2, 4.7)
+   - Green: Implement components to pass tests (Vitest Browser Mode)
+   - Refactor: Clean up component code, keep tests passing (Vitest Browser Mode)
+3. **Session Config (Vitest Browser Mode)**
+   - Red: Write failing tests for `SessionConfig` input handling, points cap warning (Section 4.2, 4.5)
+   - Green: Implement `SessionConfig` to pass tests (Vitest Browser Mode)
+   - Refactor: Clean up as needed (Vitest Browser Mode)
 
 #### M3: Points & Reward System (TDD)
 TDD cycle for each sub-task:
