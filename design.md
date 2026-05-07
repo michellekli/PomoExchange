@@ -23,17 +23,17 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
    - This gives users flexibility for real-world interruptions without creating pressure to optimize around the timer
 
 3. Points Calculation
-    - User receives points when ending a focus session
-    - Points formula: `points = elapsedMinutes * (pointsNumerator / pointsDenominator)`
-    - Default: `pointsNumerator = 1`, `pointsDenominator = 20` (yields 0.05 points/minute)
-    - User sets points per minute via two integer-only numeric inputs: numerator and denominator (pointsPerMinute = numerator / denominator)
-    - Maximum allowed points per minute is 3; numerator input has dynamic max = 3 * denominator, enforced via HTML input `min`/`max` attributes (no extra JS validation)
-    - Denominator input: `type="number" step="1" min="1" max="none"` (accepts only integers, no upper bound)
-    - Numerator input: `type="number" step="1" min="0" max="3 * denominator"` (accepts only integers)
-    - `pointsNumerator` and `pointsDenominator` settings persist across focus sessions within the same app session
-    - Points are capped at 10,000
-    - If earning points would exceed the cap, the user receives points only up to 10,000
-    - User is notified before starting a focus session when at cap
+  - User receives points when ending a focus session
+  - Points formula: `points = elapsedMinutes * (pointsNumerator / pointsDenominator)`
+  - Default: `pointsNumerator = 1`, `pointsDenominator = 20` (yields 0.05 points/minute)
+  - User sets points per minute via two integer-only numeric inputs: numerator and denominator (pointsPerMinute = numerator / denominator)
+  - Maximum allowed points per minute is 3; numerator input has dynamic max = 3 * denominator, enforced via HTML input `min`/`max` attributes (no extra JS validation)
+  - Denominator input: `type="number" step="1" min="1" max="none"` (accepts only integers, no upper bound)
+  - Numerator input: `type="number" step="1" min="0" max="3 * denominator"` (accepts only integers)
+  - `pointsNumerator` and `pointsDenominator` settings persist across focus sessions within the same app session
+  - Points are capped at 10,000
+  - If earning points would exceed the cap, the user receives points only up to 10,000
+  - User is notified before starting a focus session when at cap
 
 4. Reward System
    - Three predefined reward tiers:
