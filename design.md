@@ -27,9 +27,8 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
   - Points formula: `points = elapsedMinutes * (pointsNumerator / pointsDenominator)`
   - Default: `pointsNumerator = 1`, `pointsDenominator = 20` (yields 0.05 points/minute)
   - User sets points per minute via two integer-only numeric inputs: numerator and denominator (pointsPerMinute = numerator / denominator)
-  - Maximum allowed points per minute is 3; numerator input has dynamic max = 3 * denominator, enforced via HTML input `min`/`max` attributes (no extra JS validation)
-  - Denominator input: `type="number" step="1" min="1" max="none"` (accepts only integers, no upper bound)
-  - Numerator input: `type="number" step="1" min="0" max="3 * denominator"` (accepts only integers)
+  - `pointsNumerator` min=1, max=3; enforced via HTML input `min`/`max` attributes (no extra JS validation)
+  - `pointsDenominator` min=1, max=75; enforced via HTML input `min`/`max` attributes (no extra JS validation)
   - `pointsNumerator` and `pointsDenominator` settings persist across focus sessions within the same app session
   - Points are capped at 10,000
   - If earning points would exceed the cap, the user receives points only up to 10,000
@@ -165,7 +164,7 @@ flowchart TD
 
 ### 3.3 State Management Strategy
 - Client-Only Application: All state is managed client-side without server storage
-- Session State: User-configured minutes for focus session, active session start time (for elapsed time calculation), points balance, pointsNumerator, pointsDenominator (persist within the current app session), reward history (for current app session only), focus session history (for current app session only)
+- Session State (persists within the current app session only): user-configured minutes for focus session, active session start time (for elapsed time calculation), points balance, pointsNumerator, pointsDenominator, reward history, focus session history
 - No backend storage
 
 ### 3.4 Design Constraints
@@ -208,14 +207,14 @@ App
 | `FocusHistorySection` | Expandable section for focus history; collapsed by default |
 | `FocusHistoryHeader` | Shows section title and expand/collapse toggle |
 | `FocusHistoryList` | Renders list of completed focus sessions for current app session; hidden when collapsed |
-| `FocusSessionItem` | Single session entry showing elapsed minutes and points earned. Requires `data-testid="focus-session-item"` and computed `aria-label="Focus session: ${elapsedMinutes} minutes, ${pointsEarned} point${pointsEarned !== 1 ? 's' : ''} earned"` (Section 7.5). Integration tests validate all session history entries. |
+| `FocusSessionItem` | Single session entry showing elapsed minutes and points earned |
 | `RewardHistoryBar` | Inline row of tier-differentiated shapes; hidden until first redemption |
-| `RewardShape` | Triangle/square/pentagon; hover/tap reveals timestamp, tier, cost. Requires `data-testid="reward-shape"`, `data-tier={tier}` attribute, and computed `aria-label="${tier} reward (${shape})"` (shape from REWARD_TIERS per Section 3.1 Notes). |
+| `RewardShape` | Triangle/square/pentagon; hover/tap reveals timestamp, tier, cost |
 | `RewardCatalog` | Lists three tiers; disables unaffordable rewards |
 | `RewardTierCard` | Displays tier name, duration, cost, example activities |
 | `RewardConfirmationModal` | Shows cost and asks for confirmation before deducting points |
 | `TimerScreen` | Displays countdown timer; handles session end |
-| `TimerDisplay` | Large time-remaining display with visual progress indicator. Requires `data-testid="timer-display"` and computed `aria-label="Time remaining: ${mm}:${ss}"` (Section 7.5). No elapsed time/decrease checks in tests per user clarification. |
+| `TimerDisplay` | Large time-remaining display with visual progress indicator |
 | `EndSessionButton` | Ends session early or at completion; triggers points calculation |
 | `ProtectedRoute` | Wrapper component that reads `isSessionActive` from `AppStateContext`. If `true`, renders child component (`TimerScreen`). If `false`, redirects to `/` (Home Screen) via React Router `Navigate` component. |
 
@@ -305,7 +304,7 @@ const initialState: AppState = {
 **Reducer cases:**
 - `DISMISS_WELCOME`: Sets `welcomeDismissed: true` for the current app session; resets to false on page reload (new app session) due to no persistent storage (Section 2.4 Non-Goal #2).
 - `SET_DURATION`: Updates `sessionConfig.durationMinutes`; ignored if `isSessionActive: true`
-- `SET_POINTS_NUMERATOR`: Updates `sessionConfig.pointsNumerator` to payload (integer, clamped via HTML input min/max); ignored if `isSessionActive: true`
+- `SET_POINTS_NUMERATOR`: Updates `sessionConfig.pointsNumerator` to payload (integer ≥1, clamped via HTML input min/max); ignored if `isSessionActive: true`
 - `SET_POINTS_DENOMINATOR`: Updates `sessionConfig.pointsDenominator` to payload (integer ≥1, clamped via HTML input min/max); ignored if `isSessionActive: true`
 - `START_SESSION`: Sets `isSessionActive: true`, `sessionStartTime: action.payload?.startTime ?? new Date()`
 - `END_SESSION`: Extracts `endTime = action.payload?.endTime ?? new Date()`. Calculates `elapsedMinutes` as `(endTime.getTime() - state.sessionStartTime!.getTime()) / 60000` (retain fractional values, uses `calculateElapsedMinutes` helper from Section 4.6). Calculates `pointsPerMinute` as `state.sessionConfig.pointsNumerator / state.sessionConfig.pointsDenominator` (denominator ≥1 enforced by input min=1). Calculates `pointsEarned` as `elapsedMinutes * pointsPerMinute`, capped to ensure `state.pointsBalance + pointsEarned` does not exceed `POINTS_CAP` (10,000) per Section 2.1. Appends new `FocusSession` entry with `elapsedMinutes` set to the calculated value and `pointsEarned` set to the capped value. Sets `isSessionActive: false`, `sessionStartTime: null`. (Matches Section 4.6 algorithm)
@@ -347,25 +346,11 @@ pointsEarned = min(elapsedMinutes * pointsPerMinute, POINTS_CAP - state.pointsBa
 - Capped at 10,000 total points
 - Maximum 3 points/minute enforced via numerator input max = 3 * denominator (HTML input attribute)
 
-**Elapsed minutes calculation (pure helper function):**
-```typescript
-function calculateElapsedMinutes(startTime: Date, endTime: Date): number {
-  return (endTime.getTime() - startTime.getTime()) / 60000;
-}
-```
-- Used by `END_SESSION` reducer case
-- Retains fractional values (e.g., 30 seconds = 0.5 minutes)
-- Testable in isolation without system time dependencies
-
 **Reward affordability check:**
 ```
 isAffordable = state.pointsBalance >= REWARD_TIERS[tier].cost
 ```
 - Unaffordable rewards are grayed out with "Need X more points" message
-
-**Input clamping (HTML only, no JS validation):**
-- Points Numerator: `type="number" step="1" min="0" max="3 * pointsDenominator"`
-- Points Denominator: `type="number" step="1" min="1" max="none"`
 
 ### 4.7 Routing
 
