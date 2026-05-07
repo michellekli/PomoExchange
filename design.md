@@ -112,8 +112,8 @@ flowchart TD
    Timer[Timer Screen<br/>View time remaining]
    Timer -->|End Session| PointsCalc
 
-   PointsCalc[Points Calculation<br/>Based on elapsed time]
-   PointsCalc -->|Points Earned| HomeExtended
+   PointsCalc[🎉 Points Earned!<br/>Celebration Overlay]
+   PointsCalc -.->|auto-dismiss| HomeExtended
 
    HomeExtended[Home Screen, Extended<br/>View points, rewards & history]
    HomeExtended -->|Start Focus Session| Timer
@@ -137,6 +137,7 @@ flowchart TD
 | **History Sections** | Reward History Bar and Focus History List are inline sections of the Home Extended screen, not separate navigable views or pages. |
 | **Reward Confirmation** | Triggered when selecting an affordable reward from the inline reward catalog. Implemented as a confirmation modal overlay on the home screen. Confirming deducts points and returns to the home screen; canceling closes the modal with no changes. |
 | **Points Cap Warning** | Persistent inline warning displayed near the "Start Focus Session" button on Home Screen (Base/Extended) when `pointsBalance >= POINTS_CAP`. No dismiss option; hidden automatically when points drop below `POINTS_CAP` (via reward redemption). Informs user they will earn 0 points for focus sessions while at cap. |
+| **Points Celebration Overlay** | Center-screen congratulations card over a full-screen backdrop. Shows points earned with a celebratory animation (points counter + confetti). Auto-dismisses after ~3 seconds, revealing Home Extended. |
 
 ### 3.2 State Management
 - Client-Only Application: All state is managed client-side without server storage
@@ -176,6 +177,7 @@ App
 ├── HomeScreen
 │   ├── WelcomeDialog (conditional: shown on initial page load of each app session per Section 2.5)
 │   ├── SessionConfig (duration input, points/minute selector)
+│   ├── PointsCelebrationOverlay (conditional: shown after session ends)
 │   ├── PointsDisplay
 │   ├── FocusHistorySection
 │   │   ├── FocusHistoryHeader (expand/collapse toggle)
@@ -211,6 +213,7 @@ App
 | `TimerScreen` | Countdown timer with progress indicator; handles session end. |
 | `TimerDisplay` | Large time-remaining display with progress indicator. |
 | `EndSessionButton` | Ends session early or at completion; triggers points calculation. |
+| `PointsCelebrationOverlay` | Displays congratulations, animated points count, and celebratory effect. Auto-dismisses after a brief timeout. |
 | `ProtectedRoute` | Redirects `/timer` to `/` when no active session. |
 
 ### 4.3 Data Types
@@ -236,6 +239,7 @@ interface AppState {
   pointsBalance: number;
   focusSessions: FocusSession[];
   rewardHistory: RewardRedemption[];
+  lastSessionPointsEarned: number | null;
   isSessionActive: boolean;
   sessionStartTime: Date | null;
   sessionConfig: {
@@ -274,7 +278,8 @@ type AppAction =
   | { type: 'SET_POINTS_DENOMINATOR'; payload: number }
   | { type: 'START_SESSION'; payload?: { startTime?: Date } }
   | { type: 'END_SESSION'; payload?: { endTime?: Date } }
-  | { type: 'REDEEM_REWARD'; payload: { tier: RewardTier } };
+  | { type: 'REDEEM_REWARD'; payload: { tier: RewardTier } }
+  | { type: 'DISMISS_CELEBRATION' };
 ```
 
 **Initial state:**
@@ -292,6 +297,7 @@ const initialState: AppState = {
     pointsDenominator: DEFAULT_POINTS_DENOMINATOR,
   },
   welcomeDismissed: false,
+  lastSessionPointsEarned: null,
 };
 ```
 
@@ -302,8 +308,9 @@ const initialState: AppState = {
 | `DISMISS_WELCOME` | Sets `welcomeDismissed: true` |
 | `SET_DURATION` / `SET_POINTS_NUMERATOR` / `SET_POINTS_DENOMINATOR` | Updates config; ignored when `isSessionActive` |
 | `START_SESSION` | Sets `isSessionActive: true`, records start time |
-| `END_SESSION` | Calculates points per §4.6, enforces cap, appends to history, resets session state |
+| `END_SESSION` | Calculates points per §4.6, enforces cap, sets `lastSessionPointsEarned`, appends to history, resets session state |
 | `REDEEM_REWARD` | Deducts points if affordable, appends to `rewardHistory` |
+| `DISMISS_CELEBRATION` | Clears `lastSessionPointsEarned` to `null` |
 
 ### 4.5 Screen Layouts
 
@@ -312,6 +319,7 @@ const initialState: AppState = {
 | Home (Base) | Duration input, Points Numerator/Denominator, Start button, cap warning | Shown before first session |
 | Home (Extended) | Points balance, reward catalog, conditional reward history bar, collapsible focus history | After first session |
 | Timer | Full-screen, MM:SS countdown, progress indicator, End button | Route-protected |
+| Points Celebration | Full-screen backdrop, centered card with point total and congratulations | Overlaid on HomeExtended; auto-dismisses |
 
 ### 4.6 Key Algorithms
 
@@ -471,12 +479,13 @@ This section defines the testing strategy, tooling, scope, and validation criter
 - Points: under cap vs hits/exceeds cap
 - Reward: affordable vs unaffordable
 - Protected Route: active session vs redirect
+- Points Celebration: shown vs dismissed
 
 **User Flow Logic Path Coverage (100%)** — 9 enumerated paths in Section 3.1:
 1. Welcome → HomeBase (initial load → dismiss → Home Screen Base)
 2. HomeBase → Timer (start focus session → active Timer Screen)
 3. Timer → EndSession (end session → calculate points)
-4. EndSession → HomeExtended (points earned → Home Screen Extended)
+4. EndSession → PointsCelebration → (auto-dismiss) → HomeExtended (points earned → Home Screen Extended)
 5. HomeExtended → Timer (start new session → repeat flow)
 6. HomeExtended → Reward Redemption → Confirm (select reward → confirm → return)
 7. HomeExtended → Reward Redemption → Cancel (select reward → cancel → stay on HomeExtended)
@@ -486,7 +495,7 @@ This section defines the testing strategy, tooling, scope, and validation criter
 **E2E Journey Coverage (100%)** — Single test validating full flow:
 1. Welcome → dismiss → HomeBase
 2. Start focus session → TimerScreen
-3. End session → points calculated → HomeExtended
+3. End session → PointsCelebration overlay → auto-dismiss → HomeExtended
 4. Redeem reward → confirm → points deducted
 5. Repeat partial flow to verify state persistence
 
