@@ -497,195 +497,65 @@ This section defines the testing strategy, tooling, scope, and validation criter
 
 ### 7.1 Testing Scope
 
-Components are classified into three tiers based on testing needs:
-
 | Tier | Criteria | Testing Approach | Examples |
 |------|----------|------------------|----------|
-| **Tier 1: Pure Presentational** | No business logic, no data transformation, no user interactions, no state changes | **No tests** (excluded entirely) | Simple icon components, static divs with Tailwind classes |
-| **Tier 2: Data Display** | Renders data passed via props, has `data-testid`/`aria-label` for accessibility, no user interactions or state changes | **Integration tests ONLY** — verify rendering + data accuracy in flow tests; no dedicated component tests | `TimerDisplay`, `FocusSessionItem` |
-| **Tier 3: Business Logic** | Contains user interactions, conditional rendering based on state, calculations, or route protection | **Full testing** — unit/component tests + integration tests | `RewardCatalog`, `SessionConfig`, `ProtectedRoute`, reducer |
+| **Tier 1: Pure Presentational** | No logic, no interactions, no state | **No tests** | Static divs, simple icons |
+| **Tier 2: Data Display** | Renders prop data, has `data-testid`/`aria-label`, no interactions | **Integration only** | `TimerDisplay`, `FocusSessionItem` |
+| **Tier 3: Business Logic** | User interactions, conditional rendering, calculations, route protection | **Full testing** (unit + component + integration) | `RewardCatalog`, `SessionConfig`, reducer |
 
-#### Classified Components (Section 4.2):
-- **Tier 2 (Integration only)**: `TimerDisplay`, `FocusSessionItem`
-  - Integration tests verify: presence during flows, correct data display (time format, session data)
-  - No dedicated `*.test.tsx` files for these components
-- **Tier 3 (Full testing)**: `RewardCatalog`, `SessionConfig`, `ProtectedRoute`, `WelcomeDialog`, `RewardConfirmationModal`, `RewardShape`, reducer
-  - Full test coverage including dedicated component tests
-  - *Timer drift edge cases (background tab throttling, system sleep, setInterval drift) are explicitly excluded per user request.*
-- **Tier 1 (No tests)**: Pure Tailwind-styled divs, simple icons with no logic
+**Coverage impact**: Only Tier 3 code counts toward ~80% coverage target. Tier 1/2 excluded.
 
-> **Coverage impact**: Tier 2 components are excluded from the ~80% coverage target. Only Tier 3 code counts toward coverage metrics.
+**State Reset Tests**: Explicitly excluded (Non-Goal #2). All state resets on reload by design.
 
-> **State Reset Tests**: Explicitly excluded, as there is no persistence (Non-Goal #2); all state resets on page reload by design.
+**Timer drift** (background tab, system sleep, setInterval) explicitly excluded per user request.
 
 ### 7.2 Test Types
-Unit tests use Vitest (Node Mode); Component and Integration tests use Vitest (Browser Mode) with Playwright as the browser provider (configured in M1, Section 6.3):
 
-| Test Type | Target | Scope | Mobile Testing Scope | File Location |
-|-----------|--------|-------|---------------------|---------------|
-| Unit Tests | Tier 3: Reducer logic (`AppStateContext` cases), points calculation (Section 4.6), affordability checks | Isolated logic, no React rendering, run in Vitest Node Mode | Not applicable (no UI) | `src/context/*.test.ts` |
-| Component Tests | Tier 3: UI components with business logic (rendering, user interactions, state-driven conditional rendering) | Single component, mocked context/router. Accessibility: Use Playwright `page` object via Vitest Browser Mode → `injectAxe(page)` → `runAxe(page)` → assert `violations.length === 0` (no snapshots) | Use `page.setViewportSize({ width: 390, height: 844 })` (iPhone 12 baseline) to test mobile interactions (tap, responsive layout) for `RewardCatalog`, `WelcomeDialog` | `src/components/**/*.test.tsx` |
-| Integration Tests | Tier 2 + Tier 3: End-to-end user flow logic paths, multi-component chains, route protection. Includes Tier 2 data display validation | Full app state, real context/router, no isolated single-component tests. Accessibility: Run `runAxe(page)` at key flow states → assert 0 violations (no snapshots) | Run full user flows in mobile viewport (`page.setViewportSize({ width: 390, height: 844 })`) to validate end-to-end mobile behavior (onboarding, reward redemption) | `src/__tests__/` |
-| Smoke Tests | Initial project setup validation (router functionality, base renders) | Minimal sanity checks | Verify base renders in mobile viewport | `src/__tests__/` |
+| Test Type | Target | Scope | File Location |
+|-----------|--------|-------|---------------|
+| Unit | Tier 3: Reducer, points calculation, affordability | Vitest Node Mode, no React rendering | `src/context/*.test.ts` |
+| Component | Tier 3: UI components with business logic | Vitest Browser Mode, mocked context/router | `src/components/**/*.test.tsx` |
+| Integration | Tier 2 + Tier 3: Multi-component flows, route protection | Vitest Browser Mode, full app state | `src/__tests__/` |
 
+**Accessibility**: `@axe-core/playwright` exclusively — `runAxe(page)` → assert `violations.length === 0`. **Snapshot testing prohibited** (no `toMatchSnapshot()`, no `accessibility.snapshot()`).
 
+**Mobile**: Playwright `page.setViewportSize({ width: 390, height: 844 })` (iPhone 12). WCAG 2.1 AA touch targets ≥44×44px via `getBoundingClientRect()`.
 
-> **Accessibility Testing**: Uses `@axe-core/playwright` exclusively (no jest-axe). Snapshot testing is prohibited: no Playwright `page.accessibility.snapshot()` and no Vitest `toMatchSnapshot()`.
+**Deterministic Timing**: Unit tests use fixed payload times. Integration tests use `vi.useFakeTimers()` + `vi.advanceTimersByTime()`.
 
-#### Exclusive Scope Principle
-No behavior is tested in both component and integration suites:
-- **Component tests**: Isolated single Tier 3 component with mocked deps
-- **Integration tests**: Multi-component user flows with full app state
-
-```markdown
-Decision Tree for Test Placement:
-Test for single Tier 3 component isolated behavior?
-├─ Yes → Component test with mocked deps
-└─ No → Test for multi-component user flow?
-   ├─ Yes → Integration test with full app render
-   └─ No → Reevaluate need for test
-```
+**Exclusive Scope Principle**: No behavior tested in both component and integration suites. Component tests = isolated single component + mocked deps. Integration tests = multi-component flows + full app state.
 
 ### 7.3 Test Configuration
-- Matches TDD cycle (Section 6.1): Tests are written before implementation, enforced red-green-refactor for all milestones M2-M4.
-- File structure (defined in M1, Section 6.3):
-  - `src/context/*.test.ts` for reducer/state logic unit tests (Tier 3)
-  - `src/components/**/*.test.tsx` for Tier 3 component tests only (no test files for Tier 1 or Tier 2 components)
 
-  - `src/__tests__/` for integration and smoke tests
-- **Accessibility Testing**: Add `@axe-core/playwright` dependency (M1, Section 6.3). All a11y checks use Playwright `runAxe(page)` → assert `violations.length === 0`. **Snapshot testing is prohibited**: no Playwright `page.accessibility.snapshot()` and no Vitest `toMatchSnapshot()`.
-- **Mobile Testing**: Uses Playwright `page.setViewportSize()` in Vitest Browser Mode; standard mobile viewport baseline: `{ width: 390, height: 844 }` (iPhone 12). No separate mobile test runner. Snapshot testing is prohibited for mobile layouts.
-- **Naming conventions**: Test files must match their tier scope:
-  - Component tests: `ComponentName.test.tsx` (tests single component only)
-  - Integration tests: `flow-name.test.ts` (tests multi-component flows)
-- **TDD review check**: During code review, verify no duplicate behavior coverage between component and integration test suites for the same feature.
-- **CI Configuration**: All test suites run automatically on all push/PR events in GitHub Actions:
-  - Unit + Component tests: `npm run test` (runs `src/context/*.test.ts` in Vitest Node Mode + `src/components/**/*.test.tsx` in Vitest Browser Mode, with lcov coverage)
-  - Integration tests: `npm run test:integration` (runs `src/__tests__/` in Vitest Browser Mode)
-
-  - Coverage uploaded to Codecov via `codecov/codecov-action@v4`; fallback artifacts uploaded to GitHub Actions.
-  - Playwright browsers installed via `npx playwright install --with-deps` in CI.
-
-- Coverage reporting via Vitest `--coverage` flag, integrated into M5 Final QA (Section 6.3).
+- **TDD**: Tests written before implementation (red-green-refactor), enforced for M2-M4.
+- **Files**: `src/context/*.test.ts` (unit), `src/components/**/*.test.tsx` (component), `src/__tests__/` (integration).
+- **State Reset**: `beforeEach(() => { render(<App />); vi.useRealTimers(); })`
+- **CI**: All suites run on push/PR via GitHub Actions. Coverage uploaded to Codecov.
+- **Commands**: `npm run test` (unit + component), `npm run test:integration` (integration).
 
 ### 7.4 Coverage Requirements
-Per Section 6.5 Success Criteria:
 
-**Tier 3 Branch Coverage (~80%)**:
-- Covers all decision point branches in Tier 3 business logic:
-  - Welcome Dialog: shown (initial load) vs dismissed
-  - Session Start: allowed (no active session) vs disabled (active session)
-  - End Session: early end vs full duration end
-  - Points Calculation: under cap vs hits/exceeds cap
-  - Reward Selection: affordable (modal opens) vs unaffordable (grayed out)
-  - Protected Route: active session (allow access) vs no session (redirect)
-- Tier 2 components are excluded from coverage metrics
+**Tier 3 Branch Coverage (~80%)** — all decision point branches:
+- Welcome Dialog: shown vs dismissed
+- End Session: early vs full duration
+- Points: under cap vs hits/exceeds cap
+- Reward: affordable vs unaffordable
+- Protected Route: active session vs redirect
 
-> **Note**: Reward confirmation/cancelation is tracked via flow paths #6 and #7 in User Flow Logic Path Coverage (100%), not as a decision point branch.
+**User Flow Logic Path Coverage (100%)** — 9 enumerated paths in Section 3.1:
+1. Welcome → HomeBase (initial load → dismiss → Home Screen Base)
+2. HomeBase → Timer (start focus session → active Timer Screen)
+3. Timer → EndSession (end session → calculate points)
+4. EndSession → HomeExtended (points earned → Home Screen Extended)
+5. HomeExtended → Timer (start new session → repeat flow)
+6. HomeExtended → Reward Redemption → Confirm (select reward → confirm → return)
+7. HomeExtended → Reward Redemption → Cancel (select reward → cancel → stay on HomeExtended)
+8. Protected Route Redirect (direct `/timer` URL → redirect to `/`)
+9. Points Cap Warning (`pointsBalance >= 10000` → show inline warning)
 
-**User Flow Logic Path Coverage (100%)**:
-- Defined as the 9 enumerated paths in Section 3.1 User Flow diagram + notes:
-   1. Welcome → HomeBase (initial load → dismiss → Home Screen Base)
-   2. HomeBase → Timer (start focus session → active Timer Screen)
-   3. Timer → EndSession (end session → calculate points)
-   4. EndSession → HomeExtended (points earned → Home Screen Extended)
-   5. HomeExtended → Timer (start new session → repeat flow)
-   6. HomeExtended → Reward Redemption → Confirm (select reward → confirm → return)
-   7. HomeExtended → Reward Redemption → Cancel (select reward → cancel → stay on HomeExtended)
-   8. Protected Route Redirect (direct `/timer` URL → redirect to `/`)
-   9. Points Cap Warning (`pointsBalance >= 10000` → show inline warning)
-- Verified via integration tests in `src/__tests__/`
+**Exclusions**: Third-party deps, type definitions, Tier 1/2 components.
 
-**Coverage Exclusions**: Third-party dependencies, type definitions, build configuration, Tier 1 (Pure Presentational) and Tier 2 (Data Display) components
-
-### 7.5 Example Test Cases
-Maps to key Functional Requirements (Section 2.1). Test placement follows the Decision Tree in Section 7.2.
-
-**Tier 3 - Unit & Component Tests** (`src/context/*.test.ts` + `src/components/**/*.test.tsx`):
-1. **Unit Tests (Vitest Node Mode)**
-    - Verify `END_SESSION` action calculates `pointsEarned` correctly using derived `pointsNumerator / pointsDenominator`, enforces 10,000 points cap (FR3)
-    - Verify `REDEEM_REWARD` deducts points only if affordable, appends entry to `rewardHistory` (FR4)
-    - Verify `START_SESSION` sets `isSessionActive: true` and `sessionStartTime` to current Date (FR2)
-    - Verify `SET_POINTS_NUMERATOR` updates `sessionConfig.pointsNumerator` to payload
-    - Verify `SET_POINTS_DENOMINATOR` updates `sessionConfig.pointsDenominator` to payload
-    - **`calculateElapsedMinutes` helper tests** (pure function, deterministic):
-      - 25-minute session: `startTime = new Date('2026-05-06T10:00:00Z')`, `endTime = new Date('2026-05-06T10:25:00Z')` → returns 25
-      - Fractional minutes: 30-second session → returns 0.5
-      - 0 elapsed minutes: `startTime === endTime` → returns 0
-      - Negative time (invalid input): `endTime < startTime` → returns negative value (reducer handles as 0 elapsed)
-2. **Component Tests (Vitest Browser Mode)**
-    - `RewardCatalog`: Verify unaffordable tiers are grayed out with "Need X more points" message (FR4). Accessibility: Run `runAxe(page)` → assert 0 violations.
-    - `ProtectedRoute`: Verify redirect to `/` when `!isSessionActive` (Section 4.7). Accessibility: Run `runAxe(page)` on redirect → assert 0 violations.
-    - `SessionConfig`: Verify two integer-only numeric inputs for numerator/denominator render, inputs disabled during active session, points cap warning displays when `pointsBalance >= 10000` (FR3). Accessibility: Run `runAxe(page)` → assert 0 violations. Verify numerator input has min=0, step=1, dynamic max=3*denominator; denominator input has min=1, step=1, no max.
-    - `WelcomeDialog`: Verify renders on initial app session load; hidden after dismiss click, `welcomeDismissed=true`; no re-render after dismiss within same session; resets on page reload (new app session). Accessibility: Run `runAxe(page)` when open → assert 0 violations; validate dismiss button accessible name via `page.getAttribute('[role="button"]', 'aria-label')`.
-    > **Note**: No test for page reload reset behavior: `welcomeDismissed` state is never persisted (Section 2.4 Non-Goal #2), so reload inherently resets to un-dismissed. No test required.
-    - `RewardConfirmationModal`: Verify renders when selecting affordable reward; deducts points on confirm. Accessibility: Run `runAxe(page)` when open → assert 0 violations; verify focus trap stays in modal.
-    - `RewardShape`: Verify hover reveals redemption details (timestamp, tier, cost), tap interaction on mobile, correct `data-testid="reward-shape"` and `aria-label` attributes (Section 4.2). Accessibility: Run `runAxe(page)` in default/hover states → assert 0 violations.
-     - **Touch Target Compliance (WCAG 2.1 AA)**: For all Tier 3 interactive components, set viewport to 390x844 (iPhone 12 baseline) and assert interactive elements have `getBoundingClientRect()` width ≥44px && height ≥44px:
-       - `SessionConfig`: Start Focus Session button, duration input, points/minute input
-       - `EndSessionButton`: End Session button
-       - `RewardTierCard`: Selectable reward card
-       - `RewardConfirmationModal`: Confirm/Cancel buttons
-       - `FocusHistoryHeader`: Expand/collapse toggle
-       - `RewardShape`: Tap target
-     - **Mobile-Specific Component Tests (Tier 3)**:
-       - `RewardCatalog` (mobile): Set viewport to 390x844 → verify grid switches from 3-column to single-column (assert Tailwind `grid-cols-1` class or computed style); tap reward tier card → verify suggestions display (no hover trigger); tap again → verify suggestions hide.
-       - `WelcomeDialog` (mobile): Set viewport to 390x844 → verify no horizontal overflow (assert `document.body.scrollWidth <= 390`); verify dismiss button meets WCAG touch target size (≥44x44px via `getBoundingClientRect()`); verify text content is not truncated (assert element `scrollWidth === offsetWidth`).
-
-**Edge Case Tests (Tier 3 - Unit/Component)**:
-- Verify `END_SESSION` awards 0 points when `pointsBalance = 10000` (FR3) — use fixed 25-minute session via payload times
-- Verify `END_SESSION` caps points earned if `pointsBalance + pointsEarned > 10000` (e.g., 9999 + 2 = capped to 10000) (FR3) — use payload times to generate known `pointsEarned`
-- Verify `END_SESSION` handles 0 elapsed minutes (empty session) (FR2) — use identical start/end times in payload
-- Verify `REDEEM_REWARD` deducts points correctly when `pointsBalance = tier.cost` (FR4)
-- Verify `END_SESSION` awards 0 points when `pointsNumerator = 0` (FR3) — use fixed payload times, validate `pointsEarned = 0`
-- Verify `END_SESSION` handles fractional minutes (e.g., 30-second session → 0.5 min × (1/20) = 0.025 points) — use payload times 30 seconds apart
-- Verify `END_SESSION` with max 3 points/minute: `pointsNumerator=3`, `pointsDenominator=1`, 25-minute session → `pointsEarned=75` (or capped)
-- Verify `ProtectedRoute` redirects to `/` on direct `/timer` URL access with no active session (Section 4.7)
-- Verify rapid start/end session clicks do not cause race conditions (SessionConfig button disable logic) (Section 4.2)
-
-**Tier 2 - Integration Tests Only** (`src/__tests__/`):
-3. **Integration Tests** (Multi-component flows with full app state)
-    - Full focus session flow: Verify `TimerScreen`, `TimerDisplay`, `EndSessionButton` are rendered during active session (Section 3.1). Accessibility: Run `runAxe(page)` on Home Screen (Base/Extended) and Timer Screen → assert 0 violations. **Deterministic timing**: Use Vitest fake timers (`vi.useFakeTimers()`) to set start time, advance by exact duration, dispatch actions with fixed payload times.
-    - Reward redemption flow: Verify `RewardConfirmationModal` renders when selecting an affordable reward (Section 3.1). Accessibility: Run `runAxe(page)` after modal opens → assert 0 violations.
-    - **FocusSessionItem** (Tier 2): Validate all session history entries display correct elapsed minutes and points earned, matching `AppState.focusSessions` order (Section 4.2, 4.3). Validate `aria-label` format via `page.getAttribute('[data-testid="focus-session-item"]', 'aria-label')` (per Exclusive Scope Principle: no `runAxe()` here, covered in component tests if reclassified).
-     - **TimerDisplay** (Tier 2): Verify initial time matches configured duration in `MM:SS` format; no elapsed time/decrease checks per user clarification (Section 4.2). Validate `aria-label="Time remaining: ${mm}:${ss}"` via `page.getAttribute('[data-testid="timer-display"]', 'aria-label')`.
-     - **Mobile Viewport Integration Tests** (390x844):
-       - Onboarding flow (mobile): Set viewport to 390x844 → verify `WelcomeDialog` renders correctly, dismiss works, redirects to Home Screen Base.
-       - Reward redemption flow (mobile): Set viewport to 390x844 → tap affordable reward tier → verify `RewardConfirmationModal` opens (tap trigger, no click hover).
-     - **ProtectedRoute Browser Navigation Tests** (`src/__tests__/protected-route-navigation.test.ts`):
-       - Direct URL access + browser back: `page.goto('/timer')` → assert redirect to `/` → `page.goBack()` → assert still on `/`.
-       - Browser forward after redirect: `page.goto('/timer')` → redirect to `/` → `page.goForward()` → assert still on `/`.
-       - Active session + end session + browser back: Start session → `page.goto('/timer')` → assert on `/timer` → end session → `page.goBack()` → assert on `/`.
-       - Post-session direct URL access: Start + end session → `page.goto('/timer')` → assert redirect to `/`, points unchanged.
-       - Accessibility: `runAxe(page)` → 0 violations at all navigation states.
-     - **Integration Test State Reset Rule**: All `src/__tests__/*` files must include:
-       ```typescript
-       beforeEach(() => {
-         render(<App />);
-         vi.useRealTimers();
-       });
-       ```
-       Resets `AppStateContext` to initial state (Section 4.4) between tests to prevent cross-test state contamination (e.g., stale `pointsBalance`, `welcomeDismissed`, `isSessionActive`).
-
-**Deterministic Timing Strategy for Tests**:
-- **Unit/Reducer tests**: Use fixed payload times in `START_SESSION` and `END_SESSION` actions (e.g., `new Date('2026-05-06T10:00:00Z')`, `new Date('2026-05-06T10:25:00Z')`) to calculate exact `elapsedMinutes`.
-- **Integration tests**: Use Vitest fake timers:
-  ```typescript
-  vi.useFakeTimers();
-  vi.setSystemTime(new Date('2026-05-06T10:00:00Z'));
-  dispatch({ type: 'START_SESSION' }); // sessionStartTime = 10:00:00Z
-  vi.advanceTimersByTime(25 * 60 * 1000); // Advance 25 minutes
-  dispatch({ type: 'END_SESSION' }); // endTime = 10:25:00Z
-  vi.useRealTimers();
-  ```
-- **Production code**: Optional payloads default to `new Date()`, so no behavior change for end users.
-
-**Excluded (Tier 1 - No Tests)**:
-4. **No Tests**: Pure presentational components with no data display requirements (simple icons, static divs)
-
-*All timer drift scenarios (background tab throttling, system sleep, setInterval drift) are excluded from testing per user request.*
-
-### 7.6 Validation & QA
-- Complements M5 (Section 6.2): Full test suite run, cross-browser validation (latest Chrome, Firefox, Safari desktop/mobile)
-- Manual QA: Verify all Non-Functional Requirements (Section 2.2): minimal Timer Screen UI, no persistent state across page reloads
-- Regression testing: All tests re-run after each milestone; no new test writing in M5 (Section 6.3)
+### 7.5 Validation & QA
+- Full test suite run + cross-browser validation (latest Chrome, Firefox, Safari desktop/mobile)
+- Manual QA: Verify NFRs (minimal Timer Screen, no persistent state)
+- Regression: All tests re-run after each milestone; no new tests in M5
