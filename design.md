@@ -17,7 +17,7 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
 
 2. Focus Session Management
    - User can begin and end a focus session
-   - User can set the length of time for the focus session
+   - User can set the length of time for the focus session. Default: 25 minutes
    - User can end a focus session at any time (early or at completion)
    - Points are based purely on elapsed time — no penalty for ending early, no bonus for completing
    - This gives users flexibility for real-world interruptions without creating pressure to optimize around the timer
@@ -27,8 +27,8 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
   - Points formula: `points = elapsedMinutes * (pointsNumerator / pointsDenominator)`
   - Default: `pointsNumerator = 1`, `pointsDenominator = 20` (yields 0.05 points/minute)
   - User sets points per minute via two integer-only numeric inputs: numerator and denominator (pointsPerMinute = numerator / denominator)
-   - `pointsNumerator` min=1, max=3
-   - `pointsDenominator` min=1, max=75
+  - `pointsNumerator` min=1, max=3
+  - `pointsDenominator` min=1, max=75
   - `pointsNumerator` and `pointsDenominator` settings persist across focus sessions within the same app session
   - Points are capped at 10,000
   - If earning points would exceed the cap, the user receives points only up to 10,000
@@ -308,12 +308,12 @@ I evaluated the following alternatives to the chosen design and technical decisi
 | Accessibility | All interactive components must meet WCAG 2.1 AA standards |
 | Deployment | Must deploy as a static site with no server-side runtime |
 
-### 6.4 Navigation
+### 6.2 Navigation
 - Home view (default) and Timer view
 - Timer redirects to Home when no active session
 - Navigation away from Timer during active session triggers session end (§4.7)
 
-### 6.5 Testing Requirements
+### 6.3 Testing Requirements
 | Tier | Behaviour to Cover | Coverage Target |
 |------|--------------------|-----------------|
 | Tier 1 | Static presentational output, no logic or interactions | Not tested |
