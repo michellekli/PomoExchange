@@ -453,7 +453,7 @@ TDD cycle for each sub-task:
    - Refactor: Clean up as needed
 
 #### M5: Deployment & Final QA
-- Run full Vitest test suite, verify 100% line/branch coverage for all in-scope code (excluding static presentational UI); validate 100% user flow logic path coverage and basic UI rendering checks in integration tests
+- Run full Vitest test suite, verify ~90% line/branch coverage for Tier 3 (business logic) code (excluding static presentational UI); validate 100% user flow logic path coverage (8 enumerated paths from Section 3.1) and basic UI rendering checks in integration tests
 - Configure GitHub Pages deployment via `vite.config.ts` base path
 - Perform cross-browser/device QA (latest Chrome, Firefox, Safari desktop/mobile)
 - Verify all Functional Requirements (Section 2.1) and Non-Functional Requirements (Section 2.2) are met
