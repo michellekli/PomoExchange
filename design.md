@@ -201,22 +201,22 @@ App
 
 | Component | Responsibility |
 |-----------|---------------|
-| `WelcomeDialog` | Shown once per app session (on initial page load of each app session per Section 2.5); explains time → points → rewards flow. Resets to un-dismissed on page reload/navigation away per Section 2.2 NFR #2 (no persistent storage). |
-| `SessionConfig` | Duration input (minutes) and two integer-only numeric inputs for points numerator/denominator (side-by-side); inputs disabled during active session. Contains "Start Focus Session" button. Conditionally renders a persistent inline cap warning near the Start button when `state.pointsBalance >= 10000`: *"You've reached the 10,000 points cap! Focus sessions will earn 0 points until you redeem rewards."* |
-| `PointsDisplay` | Shows current point balance; hidden until first session completed |
-| `FocusHistorySection` | Expandable section for focus history; collapsed by default |
-| `FocusHistoryHeader` | Shows section title and expand/collapse toggle |
-| `FocusHistoryList` | Renders list of completed focus sessions for current app session; hidden when collapsed |
-| `FocusSessionItem` | Single session entry showing elapsed minutes and points earned |
-| `RewardHistoryBar` | Inline row of tier-differentiated shapes; hidden until first redemption |
-| `RewardShape` | Triangle/square/pentagon; hover/tap reveals timestamp, tier, cost |
-| `RewardCatalog` | Lists three tiers; disables unaffordable rewards |
-| `RewardTierCard` | Displays tier name, duration, cost, example activities |
-| `RewardConfirmationModal` | Shows cost and asks for confirmation before deducting points |
-| `TimerScreen` | Displays countdown timer; handles session end |
-| `TimerDisplay` | Large time-remaining display with visual progress indicator |
-| `EndSessionButton` | Ends session early or at completion; triggers points calculation |
-| `ProtectedRoute` | Wrapper component that reads `isSessionActive` from `AppStateContext`. If `true`, renders child component (`TimerScreen`). If `false`, redirects to `/` (Home Screen) via React Router `Navigate` component. |
+| `WelcomeDialog` | Explains time→points→rewards flow. Shown once per app session; resets on reload. |
+| `SessionConfig` | Duration input, points numerator/denominator, Start button, cap warning. Disabled during active session. |
+| `PointsDisplay` | Shows current point balance. Hidden until first session. |
+| `FocusHistorySection` | Expandable container for focus history; collapsed by default. |
+| `FocusHistoryHeader` | Section title with expand/collapse toggle. |
+| `FocusHistoryList` | Renders list of completed sessions for current app session. |
+| `FocusSessionItem` | Single session entry: elapsed minutes and points earned. |
+| `RewardHistoryBar` | Inline row of tier-differentiated shapes. Hidden until first redemption. |
+| `RewardShape` | Triangle/square/pentagon. Hover/tap reveals timestamp, tier, cost. |
+| `RewardCatalog` | Lists three tiers; disables unaffordable rewards. |
+| `RewardTierCard` | Displays tier name, duration, cost, example activities. |
+| `RewardConfirmationModal` | Confirmation overlay before deducting points. |
+| `TimerScreen` | Countdown timer with progress indicator; handles session end. |
+| `TimerDisplay` | Large time-remaining display with progress indicator. |
+| `EndSessionButton` | Ends session early or at completion; triggers points calculation. |
+| `ProtectedRoute` | Redirects `/timer` to `/` when no active session. |
 
 ### 4.3 Data Types
 
@@ -253,8 +253,7 @@ interface AppState {
 
 const POINTS_CAP = 10000;
 const DEFAULT_POINTS_NUMERATOR = 1;
-const DEFAULT_POINTS_DENOMINATOR = 20; // Yields 0.05 points/minute (1/20)
-const MAX_POINTS_PER_MINUTE = 3;
+const DEFAULT_POINTS_DENOMINATOR = 20;
 
 const REWARD_TIERS = {
   small:  { duration: 5,  cost: 1, suggestions: ['Stretching', 'Get a snack', 'Walk around'] },
@@ -302,37 +301,22 @@ const initialState: AppState = {
 ```
 
 **Reducer cases:**
-- `DISMISS_WELCOME`: Sets `welcomeDismissed: true` for the current app session; resets to false on page reload (new app session) due to no persistent storage (Section 2.4 Non-Goal #2).
-- `SET_DURATION`: Updates `sessionConfig.durationMinutes`; ignored if `isSessionActive: true`
-- `SET_POINTS_NUMERATOR`: Updates `sessionConfig.pointsNumerator` to payload (integer ≥1, clamped via HTML input min/max); ignored if `isSessionActive: true`
-- `SET_POINTS_DENOMINATOR`: Updates `sessionConfig.pointsDenominator` to payload (integer ≥1, clamped via HTML input min/max); ignored if `isSessionActive: true`
-- `START_SESSION`: Sets `isSessionActive: true`, `sessionStartTime: action.payload?.startTime ?? new Date()`
-- `END_SESSION`: Extracts `endTime = action.payload?.endTime ?? new Date()`. Calculates `elapsedMinutes` as `(endTime.getTime() - state.sessionStartTime!.getTime()) / 60000` (retain fractional values, uses `calculateElapsedMinutes` helper from Section 4.6). Calculates `pointsPerMinute` as `state.sessionConfig.pointsNumerator / state.sessionConfig.pointsDenominator` (denominator ≥1 enforced by input min=1). Calculates `pointsEarned` as `elapsedMinutes * pointsPerMinute`, capped to ensure `state.pointsBalance + pointsEarned` does not exceed `POINTS_CAP` (10,000) per Section 2.1. Appends new `FocusSession` entry with `elapsedMinutes` set to the calculated value and `pointsEarned` set to the capped value. Sets `isSessionActive: false`, `sessionStartTime: null`. (Matches Section 4.6 algorithm)
-- `REDEEM_REWARD`: Checks affordability, deducts points, appends to `rewardHistory`
+
+| Action | Effect |
+|--------|--------|
+| `DISMISS_WELCOME` | Sets `welcomeDismissed: true` |
+| `SET_DURATION` / `SET_POINTS_NUMERATOR` / `SET_POINTS_DENOMINATOR` | Updates config; ignored when `isSessionActive` |
+| `START_SESSION` | Sets `isSessionActive: true`, records start time |
+| `END_SESSION` | Calculates points per §4.6, enforces cap, appends to history, resets session state |
+| `REDEEM_REWARD` | Deducts points if affordable, appends to `rewardHistory` |
 
 ### 4.5 Screen Layouts
 
-**Home Screen (Base):**
-- Centered vertically
-- Duration input field
-- Two integer-only numeric inputs: Points Numerator, Points Denominator (side-by-side)
-- "Start Focus Session" button
-- Persistent inline points cap warning (displayed near Start Focus Session button when pointsBalance >= 10000)
-
-**Home Screen (Extended):**
-- Points balance at top
-- Duration and points numerator/denominator config (same as Base)
-- "Start Focus Session" button
-- Persistent inline points cap warning (displayed near Start Focus Session button when pointsBalance >= 10000)
-- Reward history bar (conditional, after first redemption)
-- Reward catalog section (responsive: 3-column grid on desktop, single column on mobile; suggestions shown on tap on mobile)
-- Focus history list at bottom (collapsible, collapsed by default): shows each session's elapsed minutes and points earned
-
-**Timer Screen:**
-- Full-screen layout
-- Large countdown timer (MM:SS)
-- Visual progress ring or bar
-- "End Session" button
+| Screen | Key Elements | Notes |
+|--------|-------------|-------|
+| Home (Base) | Duration input, Points Numerator/Denominator, Start button, cap warning | Shown before first session |
+| Home (Extended) | Points balance, reward catalog, conditional reward history bar, collapsible focus history | After first session |
+| Timer | Full-screen, MM:SS countdown, progress indicator, End button | Route-protected |
 
 ### 4.6 Key Algorithms
 
