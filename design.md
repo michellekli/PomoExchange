@@ -37,9 +37,9 @@ PomoExchange intentionally defaults to a tighter focus-to-reward ratio than trad
 
 4. Reward System
    - Three predefined reward tiers:
-     - Small: 5 minutes (suggestions: Stretching, Get a snack, Walk around)
-     - Medium: 10 minutes (suggestions: Walk outside, Quick workout, YouTube video)
-     - Large: 15 minutes (suggestions: Watching half a TV show, Quick nap)
+   - Small: 5 minutes (suggestions: Stretching, Get a snack, Walk around)
+   - Medium: 10 minutes (suggestions: Walk outside, Quick workout, YouTube video)
+   - Large: 15 minutes (suggestions: Watching half a TV show, Quick nap)
    - Each tier displays suggested duration and example activities
    - User self-selects how to reward themselves within the chosen tier
    - Reward costs:
