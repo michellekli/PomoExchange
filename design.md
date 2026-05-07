@@ -516,15 +516,15 @@ This section defines the testing strategy, tooling, scope, and validation criter
 | Unit | Tier 3: Reducer, points calculation, affordability | Vitest Node Mode, no React rendering | `src/context/*.test.ts` |
 | Component | Tier 3: UI components with business logic | Vitest Browser Mode, mocked context/router | `src/components/**/*.test.tsx` |
 | Integration | Tier 2 + Tier 3: Multi-component flows, route protection | Vitest Browser Mode, full app state | `src/__tests__/` |
-| E2E Journey | Full end-to-end user flow | Vitest Browser Mode + Playwright, full app state, `vi.useFakeTimers()`, no mocks | `src/__tests__/e2e-full-journey.test.ts` |
+| E2E Journey | Full end-to-end user flow | Vitest Browser Mode + Playwright, full app state, no mocks except for timer mocks | `src/__tests__/e2e-full-journey.test.ts` |
 
-**Cross-Browser Automation**: Vitest Browser Mode uses Playwright provider, configured to run integration/E2E tests across Chromium, Firefox, WebKit (Safari) via `vitest.config.ts` `browser.instances` array.
+**Cross-Browser Automation**: Vitest Browser Mode uses Playwright provider, configured to run integration/E2E tests across Chromium, Firefox, WebKit (Safari).
 
-**Accessibility**: `@axe-core/playwright` exclusively — `runAxe(page)` → assert `violations.length === 0`. **Snapshot testing prohibited** (no `toMatchSnapshot()`, no `accessibility.snapshot()`).
+**Accessibility**: `@axe-core/playwright` exclusively, snapshot testing prohibited.
 
-**Mobile**: Playwright `page.setViewportSize({ width: 390, height: 844 })` (iPhone 12). WCAG 2.1 AA touch targets ≥44×44px via `getBoundingClientRect()`.
+**Mobile**: iPhone 12 Viewport Size = width: 390, height: 844. WCAG 2.1 AA touch targets ≥44×44px.
 
-**Deterministic Timing**: Unit tests use fixed payload times. Integration tests use `vi.useFakeTimers()` + `vi.advanceTimersByTime()`.
+**Deterministic Timing**: Unit tests use fixed payload times. Integration tests use timer mocks.
 
 **Exclusive Scope Principle**: No behavior tested in both component and integration suites. Component tests = isolated single component + mocked deps. Integration tests = multi-component flows + full app state.
 
@@ -532,10 +532,9 @@ This section defines the testing strategy, tooling, scope, and validation criter
 
 - **TDD**: Tests written before implementation (red-green-refactor), enforced for M2-M4.
 - **Files**: `src/context/*.test.ts` (unit), `src/components/**/*.test.tsx` (component), `src/__tests__/` (integration).
-- **State Reset**: `beforeEach(() => { render(<App />); vi.useRealTimers(); })`
+- **State Reset**: Performed before each test.
 - **CI**: All suites run on push/PR via GitHub Actions with cross-browser matrix (Chromium, Firefox, WebKit) for integration/E2E tests. Coverage uploaded to Codecov.
-- **Browser Configuration**: `vitest.config.ts` includes `browser.instances` array for automated cross-browser testing.
-- **Commands**: `npm run test` (unit + component), `npm run test:integration` (integration).
+- **Browsers**: Chromium, Firefox, WebKit/Safari via Playwright.
 
 ### 7.4 Coverage Requirements
 
@@ -563,7 +562,6 @@ This section defines the testing strategy, tooling, scope, and validation criter
 3. End session → points calculated → HomeExtended
 4. Redeem reward → confirm → points deducted
 5. Repeat partial flow to verify state persistence
-*Covers all 9 enumerated user flow paths from Section 3.1*
 
 **Exclusions**: Third-party deps, type definitions, Tier 1/2 components.
 
