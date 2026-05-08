@@ -1,4 +1,4 @@
-# Architecture
+# PomoExchange Architecture
 
 ## Scaffolding decisions
 
