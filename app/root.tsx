@@ -7,7 +7,7 @@ import {
 	ScrollRestoration,
 } from "react-router";
 import { AppStateProvider } from "~/state/provider";
-import type { Route } from "./+types/root";
+import { type Route } from "./+types/root";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -23,7 +23,11 @@ export const links: Route.LinksFunction = () => [
 	},
 ];
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout({
+	children,
+}: {
+	children: React.ReactNode;
+}): React.ReactElement {
 	return (
 		<html lang="en">
 			<head>
@@ -45,7 +49,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 	);
 }
 
-export default function App() {
+export default function App(): React.ReactElement {
 	return (
 		<AppStateProvider>
 			<Outlet />
@@ -53,15 +57,18 @@ export default function App() {
 	);
 }
 
-export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+export function ErrorBoundary({
+	error,
+}: Route.ErrorBoundaryProps): React.ReactElement {
 	let message = "Oops!";
 	let details = "An unexpected error occurred.";
 	let stack: string | undefined;
 
 	if (isRouteErrorResponse(error)) {
-		message = error.status === 404 ? "404" : "Error";
+		const statusCode404 = 404;
+		message = error.status === statusCode404 ? "404" : "Error";
 		details =
-			error.status === 404
+			error.status === statusCode404
 				? "The requested page could not be found."
 				: error.statusText || details;
 	} else if (import.meta.env.DEV && error && error instanceof Error) {

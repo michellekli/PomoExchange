@@ -9,15 +9,19 @@ import {
 } from "~/components/ui/dialog";
 import { useAppDispatch, useAppState } from "~/state/provider";
 
-export default function WelcomeDialog() {
+export default function WelcomeDialog(): React.ReactElement {
 	const { welcomeDismissed } = useAppState();
 	const dispatch = useAppDispatch();
 
 	return (
 		<Dialog
 			open={!welcomeDismissed}
-			onOpenChange={(open) => {
-				if (!open) dispatch({ type: "DISMISS_WELCOME" });
+			onOpenChange={(open: boolean): void => {
+				if (!open) {
+					dispatch({
+						type: "DISMISS_WELCOME",
+					});
+				}
 			}}
 		>
 			<DialogContent

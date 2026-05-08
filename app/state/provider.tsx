@@ -1,13 +1,13 @@
 import { createContext, type ReactNode, useContext, useReducer } from "react";
 import { type AppAction, appReducer, createInitialState } from "./reducer";
-import type { AppState } from "./types";
+import { type AppState } from "./types";
 
 interface AppStateContextValue {
 	state: AppState;
 	dispatch: React.Dispatch<AppAction>;
 }
 
-const AppStateContext = createContext<AppStateContextValue | null>(null);
+const APP_STATE_CONTEXT = createContext<AppStateContextValue | null>(null);
 
 export function AppStateProvider({
 	children,
@@ -15,28 +15,31 @@ export function AppStateProvider({
 }: {
 	children: ReactNode;
 	initialState?: Partial<AppState>;
-}) {
+}): React.ReactElement {
 	const [state, dispatch] = useReducer(
 		appReducer,
 		(preloadedState as AppState) ?? undefined,
 		(override?: AppState) => ({ ...createInitialState(), ...override }),
 	);
 	return (
-		<AppStateContext.Provider value={{ state, dispatch }}>
+		<APP_STATE_CONTEXT.Provider value={{ state, dispatch }}>
 			{children}
-		</AppStateContext.Provider>
+		</APP_STATE_CONTEXT.Provider>
 	);
 }
 
-export function useAppState() {
-	const ctx = useContext(AppStateContext);
-	if (!ctx) throw new Error("useAppState must be used within AppStateProvider");
+export function useAppState(): AppState {
+	const ctx = useContext(APP_STATE_CONTEXT);
+	if (!ctx) {
+		throw new Error("useAppState must be used within AppStateProvider");
+	}
 	return ctx.state;
 }
 
-export function useAppDispatch() {
-	const ctx = useContext(AppStateContext);
-	if (!ctx)
+export function useAppDispatch(): React.Dispatch<AppAction> {
+	const ctx = useContext(APP_STATE_CONTEXT);
+	if (!ctx) {
 		throw new Error("useAppDispatch must be used within AppStateProvider");
+	}
 	return ctx.dispatch;
 }

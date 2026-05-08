@@ -1,7 +1,8 @@
+// biome-ignore-all lint/style/noMagicNumbers: this is a test file
 import { describe, expect, it } from "vitest";
 import { POINTS, POINTS_RATE, SESSION } from "./constants";
 import { appReducer, calculatePoints, createInitialState } from "./reducer";
-import type { AppState, RewardTier } from "./types";
+import { type AppState, type RewardTier } from "./types";
 
 function buildState(overrides: Partial<AppState> = {}): AppState {
 	return { ...createInitialState(), ...overrides };

@@ -1,7 +1,7 @@
 import { Navigate } from "react-router";
 import { useAppState } from "~/state/provider";
 
-export default function Timer() {
+export default function Timer(): React.ReactElement {
 	const state = useAppState();
 
 	if (!state.isSessionActive || !state.sessionStartTime) {
