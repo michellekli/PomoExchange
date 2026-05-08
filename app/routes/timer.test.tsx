@@ -1,7 +1,7 @@
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
-import { AppStateProvider } from "../state/provider";
+import { AppStateProvider } from "~/state/provider";
 import Timer from "./timer";
 
 describe("Timer navigation guard", () => {
