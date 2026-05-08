@@ -16,9 +16,9 @@ export default defineConfig({
 			],
 		},
 		exclude: ["app/**/*.test.ts", "node_modules/**", ".git/**"],
-    coverage: {
-      provider: "istanbul",
-      reportsDirectory: "coverage/browser"
-    }
+		coverage: {
+			provider: "istanbul",
+			reportsDirectory: "coverage/browser",
+		},
 	},
 });
