@@ -5,7 +5,7 @@
 	"scripts": {
 		"build": "react-router build",
 		"dev": "react-router dev",
-    "preview": "npm exec vite preview",
+		"preview": "npm exec vite preview",
 		"typecheck": "react-router typegen && tsc",
 		"test": "vitest --config=vitest.unit.config.ts",
 		"test:run": "vitest run --config=vitest.unit.config.ts",
@@ -17,8 +17,8 @@
 		"check": "biome check --write"
 	},
 	"lint-staged": {
-		"*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-			"biome check --write"
+		"**/*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
+			"npm run check"
 		]
 	},
 	"dependencies": {

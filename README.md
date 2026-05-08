@@ -27,7 +27,7 @@ Visit [PomoExchange](https://michellekli.github.io/PomoExchange/) to start using
 
 ## Development
 
-**Prerequisites:** [Node.js](https://nodejs.org/)
+**Prerequisites:** [Node.js](https://nodejs.org/) (LTS recommended)
 
 ```bash
 npm install
@@ -51,7 +51,6 @@ npm run dev
 - **Linting & formatting:** [Biome](https://biomejs.dev/), run `npm run check` to fix issues automatically before committing.
 - **Pre-commit hooks:** [Husky](https://typicode.github.io/husky/), runs lint-staged (Biome on staged files) and the full test suite on every commit. Ensure all tests pass before pushing.
 - **Testing:** Unit tests use [Vitest](https://vitest.dev/); browser tests use Vitest + Playwright.
-- **Design doc:** See [design.md](./design.md) for detailed requirements, architecture decisions, and testing strategy.
 
 ## License
 
