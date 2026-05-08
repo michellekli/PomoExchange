@@ -1,4 +1,4 @@
-[![codecov](https://codecov.io/github/michellekli/PomoExchange/branch/20-add-ci/graph/badge.svg?token=PGHQ233HH8)](https://codecov.io/github/michellekli/PomoExchange)
+[![codecov](https://codecov.io/github/michellekli/PomoExchange/graph/badge.svg?token=PGHQ233HH8)](https://codecov.io/github/michellekli/PomoExchange)
 
 # Welcome to React Router!
 

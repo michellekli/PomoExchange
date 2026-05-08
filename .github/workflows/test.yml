@@ -3,9 +3,9 @@ name: Run Tests
 on:
   # Trigger on pushes to main/dev and PRs targeting them
   push:
-    branches: [main, dev, 20-add-ci]
+    branches: [main, develop]
   pull_request:
-    branches: [main, dev]
+    branches: [main, develop]
   # Allow manual trigger from the Actions tab
   workflow_dispatch:
 
