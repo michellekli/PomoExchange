@@ -1,3 +1,4 @@
+import WelcomeDialog from "~/components/welcome-dialog";
 import type { Route } from "./+types/home";
 
 export function meta(_: Route.MetaArgs) {
@@ -11,5 +12,10 @@ export function meta(_: Route.MetaArgs) {
 }
 
 export default function Home() {
-	return <div>Home placeholder</div>;
+	return (
+		<div>
+			<div>Home placeholder</div>
+			<WelcomeDialog />
+		</div>
+	);
 }
