@@ -11,6 +11,32 @@ describe("AppStateProvider", () => {
 		);
 		await expect.element(screen.getByText("hello")).toBeVisible();
 	});
+
+	it("seeds state with initialState partial", async () => {
+		function Consumer() {
+			const state = useAppState();
+			return <div>{state.isSessionActive ? "active" : "inactive"}</div>;
+		}
+		const screen = await render(
+			<AppStateProvider initialState={{ isSessionActive: true }}>
+				<Consumer />
+			</AppStateProvider>,
+		);
+		await expect.element(screen.getByText("active")).toBeVisible();
+	});
+
+	it("uses default state when no initialState is provided", async () => {
+		function Consumer() {
+			const state = useAppState();
+			return <div>{state.isSessionActive ? "active" : "inactive"}</div>;
+		}
+		const screen = await render(
+			<AppStateProvider>
+				<Consumer />
+			</AppStateProvider>,
+		);
+		await expect.element(screen.getByText("inactive")).toBeVisible();
+	});
 });
 
 describe("useAppState", () => {

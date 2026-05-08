@@ -9,11 +9,17 @@ interface AppStateContextValue {
 
 const AppStateContext = createContext<AppStateContextValue | null>(null);
 
-export function AppStateProvider({ children }: { children: ReactNode }) {
+export function AppStateProvider({
+	children,
+	initialState: preloadedState,
+}: {
+	children: ReactNode;
+	initialState?: Partial<AppState>;
+}) {
 	const [state, dispatch] = useReducer(
 		appReducer,
-		undefined,
-		createInitialState,
+		(preloadedState as AppState) ?? undefined,
+		(override?: AppState) => ({ ...createInitialState(), ...override }),
 	);
 	return (
 		<AppStateContext.Provider value={{ state, dispatch }}>
