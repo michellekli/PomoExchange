@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/github/michellekli/PomoExchange/graph/badge.svg?token=PGHQ233HH8)](https://codecov.io/github/michellekli/PomoExchange)
+
 # Welcome to React Router!
 
 A modern, production-ready template for building full-stack React applications using React Router.

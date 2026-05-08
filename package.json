@@ -12,6 +12,7 @@
 		"test:browser": "vitest --config=vitest.browser.config.ts",
 		"test:browser:run": "vitest run --browser.headless --config=vitest.browser.config.ts",
 		"test:all": "npm run test:run && npm run test:browser:run",
+		"test:all:coverage": "vitest run --config=vitest.unit.config.ts --coverage && vitest run --config=vitest.browser.config.ts --coverage",
 		"prepare": "husky",
 		"check": "biome check --write"
 	},
@@ -37,6 +38,8 @@
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.1",
 		"@vitest/browser-playwright": "^4.1.5",
+		"@vitest/coverage-istanbul": "^4.1.5",
+		"@vitest/coverage-v8": "^4.1.5",
 		"husky": "^9.1.7",
 		"lint-staged": "^17.0.3",
 		"tailwindcss": "^4.2.2",
