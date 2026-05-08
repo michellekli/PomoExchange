@@ -3,7 +3,7 @@ name: Run Tests
 on:
   # Trigger on pushes to main/dev and PRs targeting them
   push:
-    branches: [main, dev]
+    branches: [main, dev, 20-add-ci]
   pull_request:
     branches: [main, dev]
   # Allow manual trigger from the Actions tab
