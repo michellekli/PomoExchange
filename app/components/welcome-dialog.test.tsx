@@ -32,7 +32,7 @@ describe("WelcomeDialog", () => {
 				<WelcomeDialog />
 			</AppStateProvider>,
 		);
-		await screen.getByRole("button", { name: /get started/i }).click();
+		await screen.getByRole("button", { name: /get started/iu }).click();
 		await expect
 			.element(screen.getByLabelText("Welcome to PomoExchange"))
 			.not.toBeInTheDocument();

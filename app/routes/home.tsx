@@ -1,7 +1,7 @@
 import WelcomeDialog from "~/components/welcome-dialog";
-import type { Route } from "./+types/home";
+import { type Route } from "./+types/home";
 
-export function meta(_: Route.MetaArgs) {
+export function meta(_: Route.MetaArgs): object[] {
 	return [
 		{ title: "PomoExchange" },
 		{
@@ -11,7 +11,7 @@ export function meta(_: Route.MetaArgs) {
 	];
 }
 
-export default function Home() {
+export default function Home(): React.ReactElement {
 	return (
 		<div>
 			<div>Home placeholder</div>

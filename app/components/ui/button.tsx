@@ -1,3 +1,4 @@
+// biome-ignore-all lint: shadcn component
 import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "radix-ui";
 import type * as React from "react";

@@ -13,7 +13,7 @@ describe("AppStateProvider", () => {
 	});
 
 	it("seeds state with initialState partial", async () => {
-		function Consumer() {
+		function Consumer(): React.ReactElement {
 			const state = useAppState();
 			return <div>{state.isSessionActive ? "active" : "inactive"}</div>;
 		}
@@ -26,7 +26,7 @@ describe("AppStateProvider", () => {
 	});
 
 	it("uses default state when no initialState is provided", async () => {
-		function Consumer() {
+		function Consumer(): React.ReactElement {
 			const state = useAppState();
 			return <div>{state.isSessionActive ? "active" : "inactive"}</div>;
 		}
@@ -41,7 +41,7 @@ describe("AppStateProvider", () => {
 
 describe("useAppState", () => {
 	it("returns current state", async () => {
-		function Consumer() {
+		function Consumer(): React.ReactElement {
 			const state = useAppState();
 			return <div>{state.durationMinutes}</div>;
 		}
@@ -54,7 +54,7 @@ describe("useAppState", () => {
 	});
 
 	it("throws when used outside provider", async () => {
-		function Consumer() {
+		function Consumer(): null {
 			useAppState();
 			return null;
 		}
@@ -66,13 +66,13 @@ describe("useAppState", () => {
 
 describe("useAppDispatch", () => {
 	it("dispatches actions that update state", async () => {
-		function Consumer() {
+		function Consumer(): React.ReactElement {
 			const state = useAppState();
 			const dispatch = useAppDispatch();
 			return (
 				<button
 					type="button"
-					onClick={() => dispatch({ type: "DISMISS_WELCOME" })}
+					onClick={(): void => dispatch({ type: "DISMISS_WELCOME" })}
 				>
 					{state.welcomeDismissed ? "dismissed" : "shown"}
 				</button>
@@ -89,7 +89,7 @@ describe("useAppDispatch", () => {
 	});
 
 	it("throws when used outside provider", async () => {
-		function Consumer() {
+		function Consumer(): null {
 			useAppDispatch();
 			return null;
 		}

@@ -1,9 +1,9 @@
 import { POINTS, POINTS_RATE, REWARD_TIERS, SESSION } from "./constants";
-import type {
-	AppState,
-	FocusSession,
-	RewardRedemption,
-	RewardTier,
+import {
+	type AppState,
+	type FocusSession,
+	type RewardRedemption,
+	type RewardTier,
 } from "./types";
 
 export function calculatePoints(
@@ -49,15 +49,21 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 			return { ...state, welcomeDismissed: true };
 
 		case "SET_DURATION":
-			if (state.isSessionActive) return state;
+			if (state.isSessionActive) {
+				return state;
+			}
 			return { ...state, durationMinutes: action.durationMinutes };
 
 		case "SET_NUMERATOR":
-			if (state.isSessionActive) return state;
+			if (state.isSessionActive) {
+				return state;
+			}
 			return { ...state, pointsNumerator: action.numerator };
 
 		case "SET_DENOMINATOR":
-			if (state.isSessionActive) return state;
+			if (state.isSessionActive) {
+				return state;
+			}
 			return { ...state, pointsDenominator: action.denominator };
 
 		case "START_SESSION":
@@ -91,7 +97,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
 		case "REDEEM_REWARD": {
 			const tierInfo = REWARD_TIERS.find((t) => t.tier === action.tier);
-			if (!tierInfo || state.pointsBalance < tierInfo.cost) return state;
+			if (!tierInfo || state.pointsBalance < tierInfo.cost) {
+				return state;
+			}
 			const redemption: RewardRedemption = {
 				tier: action.tier,
 				pointsCost: tierInfo.cost,
