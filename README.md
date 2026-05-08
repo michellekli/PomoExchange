@@ -1,89 +1,58 @@
 [![codecov](https://codecov.io/github/michellekli/PomoExchange/graph/badge.svg?token=PGHQ233HH8)](https://codecov.io/github/michellekli/PomoExchange)
 
-# Welcome to React Router!
+# PomoExchange
 
-A modern, production-ready template for building full-stack React applications using React Router.
+Stay focused, earn breaks. PomoExchange replaces traditional Pomodoro's mandatory breaks with an earned reward system. Every minute you focus earns points to redeem activities you actually enjoy (a walk, a YouTube video, etc.).
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+No accounts. No backend. No persistence. Just a timer and a reason to stay focused.
 
-## Features
+## Quick start
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+Visit [PomoExchange](https://michellekli.github.io/PomoExchange/) to start using it immediately.
+ 
+## How it works
 
-## Getting Started
+1. **Configure:** Set your focus duration (default 25 min) and points rate (default 0.05 pts/min).
+2. **Focus:** Start the timer and work until you're done. End early for pro-rated points if life happens.
+3. **Earn:** Points earned = elapsed minutes * points per minute. A 25-minute session at default rate earns ~1.25 points.
+4. **Redeem:** Spend points on one of three reward tiers.
 
-### Installation
+   | Tier | Recommended Break | Cost | Examples |
+   |---|---|---|---|
+   | Small | 5 min | 1 pt | Stretch, grab a snack |
+   | Medium | 10 min | 2 pts | Walk outside, watch a short video |
+   | Large | 15 min | 3 pts | Half a TV show, quick nap |
 
-Install the dependencies:
+5. **Repeat:** Track your balance, focus history, and reward history on the home screen. All data resets on page close.
+
+## Development
+
+**Prerequisites:** [Node.js](https://nodejs.org/)
 
 ```bash
 npm install
-```
-
-### Development
-
-Start the development server with HMR:
-
-```bash
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+### Commands
 
-## Building for Production
+| Command | Description |
+|---|---|
+| `npm run dev` | Start development server (hot reload) |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build locally (Vite) |
+| `npm run check` | Lint and format files (Biome) |
+| `npm run test:run` | Run unit tests |
+| `npm run test:browser:run` | Run browser tests (headless) |
+| `npm run test:all` | Run both unit and browser tests |
 
-Create a production build:
+### Project conventions
 
-```bash
-npm run build
-```
+- **Linting & formatting:** [Biome](https://biomejs.dev/), run `npm run check` to fix issues automatically before committing.
+- **Pre-commit hooks:** [Husky](https://typicode.github.io/husky/), runs lint-staged (Biome on staged files) and the full test suite on every commit. Ensure all tests pass before pushing.
+- **Testing:** Unit tests use [Vitest](https://vitest.dev/); browser tests use Vitest + Playwright.
+- **Design doc:** See [design.md](./design.md) for detailed requirements, architecture decisions, and testing strategy.
 
-## Deployment
+## License
 
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+[Apache License 2.0](./LICENSE)
