@@ -34,7 +34,7 @@ npm install
 npm run dev
 ```
 
-Key scaffolding decisions (state management, build pipeline, testing, linting, CI/CD) are documented in [`architecture.md`](./architecture.md).
+Key scaffolding decisions (state management, build pipeline, testing, linting, CI/CD) are documented in [`architecture.md`](./docs/architecture.md).
 
 ### Commands
 
