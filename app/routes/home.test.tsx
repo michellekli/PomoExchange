@@ -1,20 +1,26 @@
 // biome-ignore-all lint/style/noMagicNumbers: this is a test file
 
+import { MemoryRouter, Route, Routes } from "react-router";
 import { describe, expect, it } from "vitest";
 import type { RenderResult } from "vitest-browser-react";
 import { render } from "vitest-browser-react";
 import { AppStateProvider } from "~/state/provider";
 import type { AppState } from "~/state/types";
 import Home from "./home";
+import Timer from "./timer";
 
 describe("Home Base screen", () => {
 	function renderHome(
 		overrides: Partial<AppState> = {},
 	): Promise<RenderResult> {
 		return render(
-			<AppStateProvider initialState={{ welcomeDismissed: true, ...overrides }}>
-				<Home />
-			</AppStateProvider>,
+			<MemoryRouter>
+				<AppStateProvider
+					initialState={{ welcomeDismissed: true, ...overrides }}
+				>
+					<Home />
+				</AppStateProvider>
+			</MemoryRouter>,
 		);
 	}
 
@@ -82,13 +88,34 @@ describe("Home Base screen", () => {
 				.element(screen.getByRole("button", { name: /start focus session/iu }))
 				.toBeDisabled();
 		});
+
+		it("navigates to /timer when Start Focus Session is clicked", async () => {
+			const screen = await render(
+				<MemoryRouter initialEntries={["/"]}>
+					<AppStateProvider initialState={{ welcomeDismissed: true }}>
+						<Routes>
+							<Route index element={<Home />} />
+							<Route path="timer" element={<Timer />} />
+						</Routes>
+					</AppStateProvider>
+				</MemoryRouter>,
+			);
+			await screen
+				.getByRole("button", { name: /start focus session/iu })
+				.click();
+			await expect
+				.element(screen.getByLabelText("Time remaining"))
+				.toBeVisible();
+		});
 	});
 
 	it("shows WelcomeDialog on initial load", async () => {
 		const screen = await render(
-			<AppStateProvider>
-				<Home />
-			</AppStateProvider>,
+			<MemoryRouter>
+				<AppStateProvider>
+					<Home />
+				</AppStateProvider>
+			</MemoryRouter>,
 		);
 		await expect
 			.element(screen.getByLabelText("Welcome to PomoExchange"))

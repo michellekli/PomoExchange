@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import {
@@ -31,6 +32,7 @@ export default function Home(): React.ReactElement {
 		isSessionActive,
 	} = useAppState();
 	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
 
 	return (
 		<div>
@@ -114,7 +116,10 @@ export default function Home(): React.ReactElement {
 					<Button
 						type="button"
 						disabled={isSessionActive}
-						onClick={(): void => dispatch({ type: "START_SESSION" })}
+						onClick={async (): Promise<void> => {
+							dispatch({ type: "START_SESSION" });
+							await navigate("/timer");
+						}}
 					>
 						Start Focus Session
 					</Button>
