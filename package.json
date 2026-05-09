@@ -10,6 +10,7 @@
 		"test": "vitest --config=vitest.unit.config.ts",
 		"test:run": "vitest run --config=vitest.unit.config.ts",
 		"test:browser": "vitest --config=vitest.browser.config.ts",
+		"test:browser:headless": "vitest --browser.headless --config=vitest.browser.config.ts",
 		"test:browser:run": "vitest run --browser.headless --config=vitest.browser.config.ts",
 		"test:all": "npm run test:run && npm run test:browser:run",
 		"test:all:coverage": "vitest run --config=vitest.unit.config.ts --coverage && vitest run --config=vitest.browser.config.ts --coverage",
