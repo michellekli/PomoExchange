@@ -1,9 +1,9 @@
 import { POINTS, POINTS_RATE, REWARD_TIERS, SESSION } from "./constants";
-import {
-	type AppState,
-	type FocusSession,
-	type RewardRedemption,
-	type RewardTier,
+import type {
+	AppState,
+	FocusSession,
+	RewardRedemption,
+	RewardTier,
 } from "./types";
 
 export function calculatePoints(

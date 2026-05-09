@@ -1,4 +1,4 @@
-import { type RewardTierInfo } from "./types";
+import type { RewardTierInfo } from "./types";
 
 export const POINTS = {
 	CAP: 10_000,

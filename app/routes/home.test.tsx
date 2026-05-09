@@ -1,9 +1,10 @@
 // biome-ignore-all lint/style/noMagicNumbers: this is a test file
 
 import { describe, expect, it } from "vitest";
-import { type RenderResult, render } from "vitest-browser-react";
+import type { RenderResult } from "vitest-browser-react";
+import { render } from "vitest-browser-react";
 import { AppStateProvider } from "~/state/provider";
-import { type AppState } from "~/state/types";
+import type { AppState } from "~/state/types";
 import Home from "./home";
 
 describe("Home Base screen", () => {

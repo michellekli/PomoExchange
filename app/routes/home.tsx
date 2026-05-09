@@ -11,7 +11,7 @@ import { Input } from "~/components/ui/input";
 import WelcomeDialog from "~/components/welcome-dialog";
 import { POINTS_RATE, SESSION } from "~/state/constants";
 import { useAppDispatch, useAppState } from "~/state/provider";
-import { type Route } from "./+types/home";
+import type { Route } from "./+types/home";
 
 export function meta(_: Route.MetaArgs): object[] {
 	return [
