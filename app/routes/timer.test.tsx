@@ -1,10 +1,9 @@
 // biome-ignore-all lint/style/noMagicNumbers: this is a test file
 
-import { MemoryRouter, useLocation } from "react-router";
+import { useLocation } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import type { RenderResult } from "vitest-browser-react";
-import { render } from "vitest-browser-react";
-import { AppStateProvider } from "~/state/provider";
+import { renderWithProviders } from "~/__tests__/test-utils";
 import type { AppState } from "~/state/types";
 import Timer from "./timer";
 
@@ -12,20 +11,18 @@ function renderTimer(
 	overrides: Partial<AppState> = {},
 	routerOptions?: { initialEntries?: string[] },
 ): Promise<RenderResult> {
-	return render(
-		<MemoryRouter initialEntries={routerOptions?.initialEntries}>
-			<AppStateProvider
-				initialState={{
-					isSessionActive: true,
-					sessionStartTime: Date.now(),
-					durationMinutes: 25,
-					...overrides,
-				}}
-			>
-				<Timer />
-				<LocationDisplay />
-			</AppStateProvider>
-		</MemoryRouter>,
+	return renderWithProviders(
+		<>
+			<Timer />
+			<LocationDisplay />
+		</>,
+		{
+			isSessionActive: true,
+			sessionStartTime: Date.now(),
+			durationMinutes: 25,
+			...overrides,
+		},
+		routerOptions,
 	);
 }
 

@@ -1,10 +1,9 @@
 // biome-ignore-all lint/style/noMagicNumbers: this is a test file
 
-import { MemoryRouter, Route, Routes } from "react-router";
+import { Route, Routes } from "react-router";
 import { describe, expect, it } from "vitest";
 import type { RenderResult } from "vitest-browser-react";
-import { render } from "vitest-browser-react";
-import { AppStateProvider } from "~/state/provider";
+import { renderWithProviders } from "~/__tests__/test-utils";
 import type { AppState } from "~/state/types";
 import Home from "./home";
 import Timer from "./timer";
@@ -14,21 +13,17 @@ describe("Home Base screen", () => {
 		overrides: Partial<AppState> = {},
 		options?: { initialEntries?: string[]; routes?: React.ReactNode },
 	): Promise<RenderResult> {
-		return render(
-			<MemoryRouter initialEntries={options?.initialEntries}>
-				<AppStateProvider
-					initialState={{ welcomeDismissed: true, ...overrides }}
-				>
-					{options?.routes ? (
-						<Routes>
-							<Route index element={<Home />} />
-							{options.routes}
-						</Routes>
-					) : (
-						<Home />
-					)}
-				</AppStateProvider>
-			</MemoryRouter>,
+		return renderWithProviders(
+			options?.routes ? (
+				<Routes>
+					<Route index element={<Home />} />
+					{options.routes}
+				</Routes>
+			) : (
+				<Home />
+			),
+			{ welcomeDismissed: true, ...overrides },
+			options,
 		);
 	}
 
