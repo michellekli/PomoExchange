@@ -70,7 +70,7 @@ describe("createInitialState", () => {
 			lastSessionPoints: null,
 			isSessionActive: false,
 			sessionStartTime: null,
-			durationMinutes: SESSION.DEFAULT_DURATION_MINUTES,
+			durationMinutes: SESSION.DURATION.DEFAULT,
 			pointsNumerator: POINTS_RATE.NUMERATOR.DEFAULT,
 			pointsDenominator: POINTS_RATE.DENOMINATOR.DEFAULT,
 			welcomeDismissed: false,

@@ -18,7 +18,11 @@ export const POINTS_RATE = {
 } as const;
 
 export const SESSION = {
-	DEFAULT_DURATION_MINUTES: 25,
+	DURATION: {
+		DEFAULT: 25,
+		MIN: 1,
+		MAX: 75,
+	},
 } as const;
 
 export const REWARD_TIERS: RewardTierInfo[] = [
