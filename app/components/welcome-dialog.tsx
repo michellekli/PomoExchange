@@ -35,9 +35,9 @@ export default function WelcomeDialog(): React.ReactElement {
 					</DialogDescription>
 				</DialogHeader>
 				<ol>
-					<li>Set a focus timer and start working</li>
-					<li>Earn points for every minute you stay focused</li>
-					<li>Redeem your points for breaks you choose</li>
+					<li>1. Set a focus timer and start working.</li>
+					<li>2. Earn points for every minute you stay focused.</li>
+					<li>3. Redeem your points for breaks you choose.</li>
 				</ol>
 				<DialogClose asChild>
 					<Button type="button">Get Started</Button>

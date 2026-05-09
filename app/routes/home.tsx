@@ -67,7 +67,7 @@ export default function Home(): React.ReactElement {
 						<FieldDescription>
 							{pointsNumerator} {pointsNumerator === 1 ? "point" : "points"}{" "}
 							earned every {pointsDenominator}{" "}
-							{pointsDenominator === 1 ? "minute" : "minutes"}
+							{pointsDenominator === 1 ? "minute" : "minutes"}.
 						</FieldDescription>
 						<div className="flex items-end gap-3">
 							<Field className="flex-1">
