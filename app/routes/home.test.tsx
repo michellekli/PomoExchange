@@ -12,13 +12,21 @@ import Timer from "./timer";
 describe("Home Base screen", () => {
 	function renderHome(
 		overrides: Partial<AppState> = {},
+		options?: { initialEntries?: string[]; routes?: React.ReactNode },
 	): Promise<RenderResult> {
 		return render(
-			<MemoryRouter>
+			<MemoryRouter initialEntries={options?.initialEntries}>
 				<AppStateProvider
 					initialState={{ welcomeDismissed: true, ...overrides }}
 				>
-					<Home />
+					{options?.routes ? (
+						<Routes>
+							<Route index element={<Home />} />
+							{options.routes}
+						</Routes>
+					) : (
+						<Home />
+					)}
 				</AppStateProvider>
 			</MemoryRouter>,
 		);
@@ -90,15 +98,12 @@ describe("Home Base screen", () => {
 		});
 
 		it("navigates to /timer when Start Focus Session is clicked", async () => {
-			const screen = await render(
-				<MemoryRouter initialEntries={["/"]}>
-					<AppStateProvider initialState={{ welcomeDismissed: true }}>
-						<Routes>
-							<Route index element={<Home />} />
-							<Route path="timer" element={<Timer />} />
-						</Routes>
-					</AppStateProvider>
-				</MemoryRouter>,
+			const screen = await renderHome(
+				{},
+				{
+					initialEntries: ["/"],
+					routes: <Route path="timer" element={<Timer />} />,
+				},
 			);
 			await screen
 				.getByRole("button", { name: /start focus session/iu })
@@ -110,13 +115,7 @@ describe("Home Base screen", () => {
 	});
 
 	it("shows WelcomeDialog on initial load", async () => {
-		const screen = await render(
-			<MemoryRouter>
-				<AppStateProvider>
-					<Home />
-				</AppStateProvider>
-			</MemoryRouter>,
-		);
+		const screen = await renderHome({ welcomeDismissed: false });
 		await expect
 			.element(screen.getByLabelText("Welcome to PomoExchange"))
 			.toBeVisible();
