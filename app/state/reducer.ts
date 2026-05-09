@@ -1,9 +1,9 @@
 import { POINTS, POINTS_RATE, REWARD_TIERS, SESSION } from "./constants";
-import {
-	type AppState,
-	type FocusSession,
-	type RewardRedemption,
-	type RewardTier,
+import type {
+	AppState,
+	FocusSession,
+	RewardRedemption,
+	RewardTier,
 } from "./types";
 
 export function calculatePoints(
@@ -36,7 +36,7 @@ export function createInitialState(): AppState {
 		lastSessionPoints: null,
 		isSessionActive: false,
 		sessionStartTime: null,
-		durationMinutes: SESSION.DEFAULT_DURATION_MINUTES,
+		durationMinutes: SESSION.DURATION.DEFAULT,
 		pointsNumerator: POINTS_RATE.NUMERATOR.DEFAULT,
 		pointsDenominator: POINTS_RATE.DENOMINATOR.DEFAULT,
 		welcomeDismissed: false,

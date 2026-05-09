@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { POINTS, POINTS_RATE, SESSION } from "./constants";
 import { appReducer, calculatePoints, createInitialState } from "./reducer";
-import { type AppState, type RewardTier } from "./types";
+import type { AppState, RewardTier } from "./types";
 
 function buildState(overrides: Partial<AppState> = {}): AppState {
 	return { ...createInitialState(), ...overrides };
@@ -70,7 +70,7 @@ describe("createInitialState", () => {
 			lastSessionPoints: null,
 			isSessionActive: false,
 			sessionStartTime: null,
-			durationMinutes: SESSION.DEFAULT_DURATION_MINUTES,
+			durationMinutes: SESSION.DURATION.DEFAULT,
 			pointsNumerator: POINTS_RATE.NUMERATOR.DEFAULT,
 			pointsDenominator: POINTS_RATE.DENOMINATOR.DEFAULT,
 			welcomeDismissed: false,

@@ -1,6 +1,8 @@
-import { createContext, type ReactNode, useContext, useReducer } from "react";
-import { type AppAction, appReducer, createInitialState } from "./reducer";
-import { type AppState } from "./types";
+import type { ReactNode } from "react";
+import { createContext, useContext, useReducer } from "react";
+import type { AppAction } from "./reducer";
+import { appReducer, createInitialState } from "./reducer";
+import type { AppState } from "./types";
 
 interface AppStateContextValue {
 	state: AppState;
