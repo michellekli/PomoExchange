@@ -49,4 +49,20 @@ describe("PointsCelebration", () => {
 			.element(screen.getByText("Great Work!"))
 			.not.toBeInTheDocument();
 	});
+
+	it("counts up to the correct earned points value", async () => {
+		vi.useFakeTimers();
+		const screen = await renderWithProviders(<PointsCelebration />, {
+			lastSessionPoints: 2.5,
+		});
+
+		// React batches setState as microtasks — advanceTimersByTimeAsync
+		// yields between timer ticks so phase 2 can schedule rAF.
+		await vi.advanceTimersByTimeAsync(600);
+		// Advance through the full count duration (1200ms) plus buffer so
+		// rAF completes the easing.
+		await vi.advanceTimersByTimeAsync(1300);
+
+		await expect.element(screen.getByText("+2.50")).toBeVisible();
+	});
 });
