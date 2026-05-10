@@ -29,4 +29,6 @@ Show edits needed
 
 > Move from plan to build mode
 
+@prompts/coding.md
+
 Proceed with the implementation
