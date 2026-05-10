@@ -15,7 +15,8 @@
 		"test:all": "npm run test:run && npm run test:browser:run",
 		"test:all:coverage": "vitest run --config=vitest.unit.config.ts --coverage && vitest run --config=vitest.browser.config.ts --coverage",
 		"prepare": "husky",
-		"check": "biome check --write"
+		"check": "biome check --write",
+		"generate:xml": "npx tsx __genxml__/ts-source-to-xml.ts --all --out app-xml"
 	},
 	"lint-staged": {
 		"**/*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
@@ -53,6 +54,8 @@
 		"husky": "^9.1.7",
 		"lint-staged": "^17.0.3",
 		"tailwindcss": "^4.2.2",
+		"ts-morph": "^28.0.0",
+		"tsx": "^4.21.0",
 		"typescript": "^5.9.3",
 		"vite": "^8.0.3",
 		"vitest-browser-react": "^2.2.0"

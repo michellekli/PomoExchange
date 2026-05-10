@@ -20,7 +20,12 @@ export default defineConfig({
 				{ browser: "webkit" },
 			],
 		},
-		exclude: ["app/**/*.test.ts", "node_modules/**", ".git/**"],
+		exclude: [
+			"app/**/*.test.ts",
+			"node_modules/**",
+			".git/**",
+			"__genxml__/**",
+		],
 		coverage: {
 			provider: "istanbul",
 			reportsDirectory: "coverage/browser",
