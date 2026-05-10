@@ -10,3 +10,7 @@
 /.vitest-attachments/
 **/__screenshots__/
 /coverage/
+
+# Codebase XML
+/app-xml/
+/__genxml__/
