@@ -116,6 +116,33 @@ describe("Home Base screen", () => {
 			.toBeVisible();
 	});
 
+	describe("Points Celebration overlay", () => {
+		it("shows after session ends (lastSessionPoints is set)", async () => {
+			const screen = await renderHome({ lastSessionPoints: 2.5 });
+			await expect.element(screen.getByText("Great Work!")).toBeVisible();
+		});
+
+		it("shows cap message when at max points", async () => {
+			const cap = 10_000;
+			const screen = await renderHome({
+				lastSessionPoints: 0,
+				pointsBalance: cap,
+			});
+			await expect
+				.element(
+					screen.getByText(`Points Cap (${cap.toLocaleString()}) Reached`),
+				)
+				.toBeVisible();
+		});
+
+		it("is hidden when lastSessionPoints is null", async () => {
+			const screen = await renderHome({ lastSessionPoints: null });
+			await expect
+				.element(screen.getByText("Great Work!"))
+				.not.toBeInTheDocument();
+		});
+	});
+
 	it("inputs and button are disabled when session is active", async () => {
 		const screen = await renderHome({ isSessionActive: true });
 		await expect
