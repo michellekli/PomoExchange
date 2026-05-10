@@ -23,12 +23,28 @@ What files would need to be modified or created?
 
 ---
 
+@prompts/coding.md
+
 Show edits needed
 
 ---
 
 > Move from plan to build mode
 
-@prompts/coding.md
-
 Proceed with the implementation
+
+---
+
+> Move from build to plan mode
+
+@prompts\coding.md
+
+Identify possible refactors for {@app\components\points-celebration.test.tsx}
+
+---
+
+@prompts\document.md
+
+{@app\components\points-celebration.tsx}
+
+---
