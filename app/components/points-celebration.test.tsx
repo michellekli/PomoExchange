@@ -54,6 +54,15 @@ describe("PointsCelebration", () => {
 	it("counts up to the correct earned points value", async () => {
 		vi.useFakeTimers();
 
+		// performance.now() is not faked by vi.useFakeTimers().
+		// Date.now() is safe: the count-up runs for 1200ms at
+		// ~60fps, so millisecond precision is more than adequate.
+		const origPerf = performance;
+		vi.stubGlobal("performance", {
+			...origPerf,
+			now: () => Date.now(),
+		});
+
 		// requestAnimationFrame uses a frame-aligned delay in fake timers
 		// that can be unreliable across environments. Mock it with setTimeout
 		// so the animation loop is driven by standard timers that
@@ -71,7 +80,11 @@ describe("PointsCelebration", () => {
 			lastSessionPoints: 2.5,
 		});
 
+		// React batches setState as microtasks — advanceTimersByTimeAsync
+		// yields between timer ticks so phase 2 can schedule rAF.
 		await vi.advanceTimersByTimeAsync(600);
+		// Advance through the full count duration (1200ms) plus buffer so
+		// rAF completes the easing.
 		await vi.advanceTimersByTimeAsync(1300);
 
 		await expect.element(screen.getByText("+2.50")).toBeVisible();
