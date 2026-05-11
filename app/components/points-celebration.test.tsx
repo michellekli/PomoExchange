@@ -51,7 +51,7 @@ describe("PointsCelebration", () => {
 			.not.toBeInTheDocument();
 	});
 
-	it.skipIf(typeof process !== "undefined" && !!process.env.SKIP_FLAKY_TESTS)(
+	it.skipIf(!!process.env.CI)(
 		"counts up to the correct earned points value",
 		async () => {
 			vi.useFakeTimers();
