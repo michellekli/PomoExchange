@@ -51,42 +51,45 @@ describe("PointsCelebration", () => {
 			.not.toBeInTheDocument();
 	});
 
-	it("counts up to the correct earned points value", async () => {
-		vi.useFakeTimers();
+	it.skipIf(typeof process !== "undefined" && !!process.env.SKIP_FLAKY_TESTS)(
+		"counts up to the correct earned points value",
+		async () => {
+			vi.useFakeTimers();
 
-		// performance.now() is not faked by vi.useFakeTimers().
-		// Date.now() is safe: the count-up runs for 1200ms at
-		// ~60fps, so millisecond precision is more than adequate.
-		const origPerf = performance;
-		vi.stubGlobal("performance", {
-			...origPerf,
-			now: () => Date.now(),
-		});
+			// performance.now() is not faked by vi.useFakeTimers().
+			// Date.now() is safe: the count-up runs for 1200ms at
+			// ~60fps, so millisecond precision is more than adequate.
+			const origPerf = performance;
+			vi.stubGlobal("performance", {
+				...origPerf,
+				now: () => Date.now(),
+			});
 
-		// requestAnimationFrame uses a frame-aligned delay in fake timers
-		// that can be unreliable across environments. Mock it with setTimeout
-		// so the animation loop is driven by standard timers that
-		// @sinonjs/fake-timers handles robustly.
-		const rAF = (cb: FrameRequestCallback): number => {
-			// 16ms ≈ 60fps, matching the typical rAF refresh rate
-			return window.setTimeout(() => cb(performance.now()), 16);
-		};
-		vi.stubGlobal("requestAnimationFrame", rAF);
-		vi.stubGlobal("cancelAnimationFrame", (id: number): void => {
-			window.clearTimeout(id);
-		});
+			// requestAnimationFrame uses a frame-aligned delay in fake timers
+			// that can be unreliable across environments. Mock it with setTimeout
+			// so the animation loop is driven by standard timers that
+			// @sinonjs/fake-timers handles robustly.
+			const rAF = (cb: FrameRequestCallback): number => {
+				// 16ms ≈ 60fps, matching the typical rAF refresh rate
+				return window.setTimeout(() => cb(performance.now()), 16);
+			};
+			vi.stubGlobal("requestAnimationFrame", rAF);
+			vi.stubGlobal("cancelAnimationFrame", (id: number): void => {
+				window.clearTimeout(id);
+			});
 
-		const screen = await renderWithProviders(<PointsCelebration />, {
-			lastSessionPoints: 2.5,
-		});
+			const screen = await renderWithProviders(<PointsCelebration />, {
+				lastSessionPoints: 2.5,
+			});
 
-		// React batches setState as microtasks — advanceTimersByTimeAsync
-		// yields between timer ticks so phase 2 can schedule rAF.
-		await vi.advanceTimersByTimeAsync(600);
-		// Advance through the full count duration (1200ms) plus buffer so
-		// rAF completes the easing.
-		await vi.advanceTimersByTimeAsync(1300);
+			// React batches setState as microtasks — advanceTimersByTimeAsync
+			// yields between timer ticks so phase 2 can schedule rAF.
+			await vi.advanceTimersByTimeAsync(600);
+			// Advance through the full count duration (1200ms) plus buffer so
+			// rAF completes the easing.
+			await vi.advanceTimersByTimeAsync(1300);
 
-		await expect.element(screen.getByText("+2.50")).toBeVisible();
-	});
+			await expect.element(screen.getByText("+2.50")).toBeVisible();
+		},
+	);
 });

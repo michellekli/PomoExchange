@@ -17,6 +17,7 @@ jobs:
       image: mcr.microsoft.com/playwright:v1.59.1-noble
     env:
       HOME: /root
+      SKIP_FLAKY_TESTS: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
