@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router";
+import PointsBalance from "~/components/points-balance";
 import PointsCelebration from "~/components/points-celebration";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
@@ -39,6 +40,7 @@ export default function Home(): React.ReactElement {
 		<div>
 			<WelcomeDialog />
 			<PointsCelebration />
+			<PointsBalance />
 			<Card className="p-6 m-4 max-w-md mx-auto">
 				<div className="space-y-4">
 					<FieldSet>
