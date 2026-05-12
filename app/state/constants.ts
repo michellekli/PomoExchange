@@ -2,6 +2,7 @@ import type { RewardTierInfo } from "./types";
 
 export const POINTS = {
 	CAP: 10_000,
+	DISPLAY_DECIMALS: 2,
 } as const;
 
 export const POINTS_RATE = {

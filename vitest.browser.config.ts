@@ -31,4 +31,7 @@ export default defineConfig({
 			reportsDirectory: "coverage/browser",
 		},
 	},
+	define: {
+		"process.env.CI": JSON.stringify(process.env.CI ?? false),
+	},
 });
