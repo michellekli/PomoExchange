@@ -5,7 +5,7 @@ Adjust text within curly braces '{}' as needed. Steps for the user are preceded 
 
 > Move from build to plan mode
 
-What is needed to complete step {1.4} in @docs\roadmap.md ? Read only @docs\design.md 
+What is needed to complete step {2.2} in @docs\roadmap.md ? Read only @docs\design.md 
 
 ---
 
@@ -14,6 +14,10 @@ What components from shadcn could be used? List components that could be install
 ---
 
 > Install suggested components: npx shadcn@latest add {card}
+
+---
+
+> Update app-xml/: npm run generate:xml
 
 ---
 
