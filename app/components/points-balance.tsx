@@ -14,7 +14,11 @@ export default function PointsBalance(): React.ReactElement | null {
 		<Card className="p-4 m-4 max-w-md mx-auto">
 			<div className="flex items-center justify-between">
 				<span className="text-sm font-medium">Points Balance</span>
-				<Badge variant="secondary" className="text-base">
+				<Badge
+					variant="secondary"
+					className="text-base"
+					aria-label={`Points Balance: ${pointsBalance.toFixed(POINTS.DISPLAY_DECIMALS)}`}
+				>
 					{pointsBalance.toFixed(POINTS.DISPLAY_DECIMALS)}
 				</Badge>
 			</div>

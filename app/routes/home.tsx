@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router";
 import PointsBalance from "~/components/points-balance";
 import PointsCelebration from "~/components/points-celebration";
+import RewardCatalog from "~/components/reward-catalog";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import {
@@ -129,6 +130,11 @@ export default function Home(): React.ReactElement {
 					</Button>
 				</div>
 			</Card>
+			<RewardCatalog
+				onSelectTier={(): void => {
+					/* Do nothing. */
+				}}
+			/>
 		</div>
 	);
 }
