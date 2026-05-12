@@ -1,0 +1,4 @@
+ignore:
+  - "app/components/ui"  # ignore shadcn components
+  - "app/lib/utils.ts"   # ignore shadcn utils file
+  - "app/__tests__"      # ignore test utils

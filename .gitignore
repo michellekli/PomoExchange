@@ -1,0 +1,16 @@
+.DS_Store
+.env
+/node_modules/
+
+# React Router
+/.react-router/
+/build/
+
+# Vitest
+/.vitest-attachments/
+**/__screenshots__/
+/coverage/
+
+# Codebase XML
+/app-xml/
+/__genxml__/
