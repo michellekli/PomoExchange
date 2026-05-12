@@ -1,0 +1,64 @@
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { POINTS, REWARD_TIERS } from "~/state/constants";
+import { useAppState } from "~/state/provider";
+
+interface RewardCatalogProps {
+	onSelectTier: (tier: (typeof REWARD_TIERS)[number]) => void;
+}
+
+export default function RewardCatalog({
+	onSelectTier,
+}: RewardCatalogProps): React.ReactElement | null {
+	const { pointsBalance, pastSessions } = useAppState();
+
+	if (pastSessions.length === 0) {
+		// Don't show if there haven't been any completed focus sessions
+		return null;
+	}
+
+	return (
+		<div className="space-y-3 m-4 max-w-md mx-auto">
+			<h2 className="text-sm font-medium">Reward Catalog</h2>
+			{REWARD_TIERS.map((tier) => {
+				const affordable = pointsBalance >= tier.cost;
+				return (
+					<Card
+						key={tier.tier}
+						className={`p-4 ${affordable ? "" : "opacity-50"}`}
+					>
+						<CardHeader>
+							<CardTitle>{tier.label}</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-sm text-muted-foreground">
+								{tier.durationMinutes} min — {tier.cost} point
+								{tier.cost === 1 ? "s" : ""}
+							</p>
+							<p className="text-xs text-muted-foreground mt-1">
+								{tier.suggestions.join(" · ")}
+							</p>
+							{affordable ? (
+								<Button
+									type="button"
+									size="sm"
+									className="mt-3"
+									onClick={(): void => onSelectTier(tier)}
+									aria-label={`Select ${tier.label} reward`}
+								>
+									Select
+								</Button>
+							) : (
+								<p className="text-xs text-destructive mt-2">
+									Need{" "}
+									{(tier.cost - pointsBalance).toFixed(POINTS.DISPLAY_DECIMALS)}{" "}
+									more points
+								</p>
+							)}
+						</CardContent>
+					</Card>
+				);
+			})}
+		</div>
+	);
+}
