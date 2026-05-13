@@ -181,6 +181,31 @@ describe("Home Base screen", () => {
 		});
 	});
 
+	describe("Reward History Bar display", () => {
+		it("is hidden before first redemption", async () => {
+			const screen = await renderHome({ pastRedemptions: [] });
+			await expect
+				.element(screen.getByText("Reward History"))
+				.not.toBeInTheDocument();
+		});
+
+		it("is visible after first redemption", async () => {
+			const screen = await renderHome({
+				pastRedemptions: [{ tier: "small", pointsCost: 1, timestamp: 100 }],
+			});
+			await expect.element(screen.getByText("Reward History")).toBeVisible();
+		});
+
+		it("shows redemption entries", async () => {
+			const screen = await renderHome({
+				pastRedemptions: [{ tier: "small", pointsCost: 1, timestamp: 100 }],
+			});
+			await expect
+				.element(screen.getByRole("button", { name: /Small — 1 point/iu }))
+				.toBeVisible();
+		});
+	});
+
 	describe("Focus History List display", () => {
 		it("is hidden before first session", async () => {
 			const screen = await renderHome({ pastSessions: [] });

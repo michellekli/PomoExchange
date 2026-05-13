@@ -3,6 +3,7 @@ import FocusHistoryList from "~/components/focus-history-list";
 import PointsBalance from "~/components/points-balance";
 import PointsCelebration from "~/components/points-celebration";
 import RewardCatalog from "~/components/reward-catalog";
+import RewardHistoryBar from "~/components/reward-history-bar";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import {
@@ -146,6 +147,7 @@ export default function Home(): React.ReactElement {
 				</div>
 			</Card>
 			<RewardCatalog />
+			<RewardHistoryBar />
 			<FocusHistoryList />
 		</div>
 	);
