@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router";
 import FocusHistoryList from "~/components/focus-history-list";
 import PointsBalance from "~/components/points-balance";
+import PointsCapWarning from "~/components/points-cap-warning";
 import PointsCelebration from "~/components/points-celebration";
 import RewardCatalog from "~/components/reward-catalog";
 import RewardHistoryBar from "~/components/reward-history-bar";
@@ -134,6 +135,7 @@ export default function Home(): React.ReactElement {
 							</Field>
 						</div>
 					</FieldSet>
+					<PointsCapWarning />
 					<Button
 						type="button"
 						disabled={isSessionActive}
