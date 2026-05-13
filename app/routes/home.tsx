@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import PointsBalance from "~/components/points-balance";
 import PointsCelebration from "~/components/points-celebration";
@@ -14,6 +13,7 @@ import {
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import WelcomeDialog from "~/components/welcome-dialog";
+import { useClampedInput } from "~/hooks/use-clamped-input";
 import { POINTS_RATE, SESSION } from "~/state/constants";
 import { useAppDispatch, useAppState } from "~/state/provider";
 import type { Route } from "./+types/home";
@@ -28,17 +28,6 @@ export function meta(_: Route.MetaArgs): object[] {
 	];
 }
 
-export function clampInt(
-	value: string,
-	min: number,
-	max: number,
-	defaultValue: number,
-): number {
-	const raw = Math.round(parseFloat(value));
-	const val = Number.isNaN(raw) ? defaultValue : raw;
-	return Math.min(Math.max(val, min), max);
-}
-
 export default function Home(): React.ReactElement {
 	const {
 		durationMinutes,
@@ -48,27 +37,37 @@ export default function Home(): React.ReactElement {
 	} = useAppState();
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-	// Local state allows the user to type freely without clamping on every keystroke.
-	// The clamped value is dispatched only on blur.
-	const [durationInput, setDurationInput] = useState(() =>
-		durationMinutes.toString(),
-	);
-	const [numeratorInput, setNumeratorInput] = useState(() =>
-		pointsNumerator.toString(),
-	);
-	const [denominatorInput, setDenominatorInput] = useState(() =>
-		pointsDenominator.toString(),
-	);
-	// Keep local state in sync when global state changes externally (e.g. reset).
-	useEffect(() => {
-		setDurationInput(durationMinutes.toString());
-	}, [durationMinutes]);
-	useEffect(() => {
-		setNumeratorInput(pointsNumerator.toString());
-	}, [pointsNumerator]);
-	useEffect(() => {
-		setDenominatorInput(pointsDenominator.toString());
-	}, [pointsDenominator]);
+
+	const [durationInput, onDurationChange, onDurationBlur] = useClampedInput({
+		globalValue: durationMinutes,
+		min: SESSION.DURATION.MIN,
+		max: SESSION.DURATION.MAX,
+		defaultValue: SESSION.DURATION.DEFAULT,
+		onCommit: (clamped: number) => {
+			dispatch({ type: "SET_DURATION", durationMinutes: clamped });
+		},
+	});
+
+	const [numeratorInput, onNumeratorChange, onNumeratorBlur] = useClampedInput({
+		globalValue: pointsNumerator,
+		min: POINTS_RATE.NUMERATOR.MIN,
+		max: POINTS_RATE.NUMERATOR.MAX,
+		defaultValue: POINTS_RATE.NUMERATOR.DEFAULT,
+		onCommit: (clamped: number) => {
+			dispatch({ type: "SET_NUMERATOR", numerator: clamped });
+		},
+	});
+
+	const [denominatorInput, onDenominatorChange, onDenominatorBlur] =
+		useClampedInput({
+			globalValue: pointsDenominator,
+			min: POINTS_RATE.DENOMINATOR.MIN,
+			max: POINTS_RATE.DENOMINATOR.MAX,
+			defaultValue: POINTS_RATE.DENOMINATOR.DEFAULT,
+			onCommit: (clamped: number) => {
+				dispatch({ type: "SET_DENOMINATOR", denominator: clamped });
+			},
+		});
 
 	return (
 		<div>
@@ -91,22 +90,8 @@ export default function Home(): React.ReactElement {
 								max={SESSION.DURATION.MAX}
 								value={durationInput}
 								disabled={isSessionActive}
-								onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-									setDurationInput(e.target.value);
-								}}
-								onBlur={(): void => {
-									const clamped = clampInt(
-										durationInput,
-										SESSION.DURATION.MIN,
-										SESSION.DURATION.MAX,
-										SESSION.DURATION.DEFAULT,
-									);
-									dispatch({
-										type: "SET_DURATION",
-										durationMinutes: clamped,
-									});
-									setDurationInput(clamped.toString());
-								}}
+								onChange={onDurationChange}
+								onBlur={onDurationBlur}
 							/>
 						</Field>
 					</FieldSet>
@@ -127,22 +112,8 @@ export default function Home(): React.ReactElement {
 									max={POINTS_RATE.NUMERATOR.MAX}
 									value={numeratorInput}
 									disabled={isSessionActive}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-										setNumeratorInput(e.target.value);
-									}}
-									onBlur={(): void => {
-										const clamped = clampInt(
-											numeratorInput,
-											POINTS_RATE.NUMERATOR.MIN,
-											POINTS_RATE.NUMERATOR.MAX,
-											POINTS_RATE.NUMERATOR.DEFAULT,
-										);
-										dispatch({
-											type: "SET_NUMERATOR",
-											numerator: clamped,
-										});
-										setNumeratorInput(clamped.toString());
-									}}
+									onChange={onNumeratorChange}
+									onBlur={onNumeratorBlur}
 								/>
 							</Field>
 							<span className="pb-2.5 text-lg text-muted-foreground">:</span>
@@ -155,22 +126,8 @@ export default function Home(): React.ReactElement {
 									max={POINTS_RATE.DENOMINATOR.MAX}
 									value={denominatorInput}
 									disabled={isSessionActive}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-										setDenominatorInput(e.target.value);
-									}}
-									onBlur={(): void => {
-										const clamped = clampInt(
-											denominatorInput,
-											POINTS_RATE.DENOMINATOR.MIN,
-											POINTS_RATE.DENOMINATOR.MAX,
-											POINTS_RATE.DENOMINATOR.DEFAULT,
-										);
-										dispatch({
-											type: "SET_DENOMINATOR",
-											denominator: clamped,
-										});
-										setDenominatorInput(clamped.toString());
-									}}
+									onChange={onDenominatorChange}
+									onBlur={onDenominatorBlur}
 								/>
 							</Field>
 						</div>
@@ -187,11 +144,7 @@ export default function Home(): React.ReactElement {
 					</Button>
 				</div>
 			</Card>
-			<RewardCatalog
-				onSelectTier={(): void => {
-					/* Do nothing. */
-				}}
-			/>
+			<RewardCatalog />
 		</div>
 	);
 }

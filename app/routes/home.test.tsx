@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { RenderResult } from "vitest-browser-react";
 import { renderWithProviders } from "~/__tests__/test-utils";
 import type { AppState } from "~/state/types";
-import Home, { clampInt } from "./home";
+import Home from "./home";
 import Timer from "./timer";
 
 describe("Home Base screen", () => {
@@ -181,44 +181,16 @@ describe("Home Base screen", () => {
 		});
 	});
 
-	describe("clampInt", () => {
-		it("returns the value when it is within range", () => {
-			expect(clampInt("5", 1, 10, 3)).toBe(5);
-		});
-
-		it("returns min when value is below range", () => {
-			expect(clampInt("0", 1, 10, 3)).toBe(1);
-		});
-
-		it("returns max when value is above range", () => {
-			expect(clampInt("20", 1, 10, 3)).toBe(10);
-		});
-
-		it("returns defaultValue when value is NaN", () => {
-			expect(clampInt("abc", 1, 10, 3)).toBe(3);
-		});
-
-		it("returns defaultValue when value is empty string", () => {
-			expect(clampInt("", 1, 10, 3)).toBe(3);
-		});
-
-		it("returns min when value equals min", () => {
-			expect(clampInt("1", 1, 10, 3)).toBe(1);
-		});
-
-		it("returns max when value equals max", () => {
-			expect(clampInt("10", 1, 10, 3)).toBe(10);
-		});
-
-		it("rounds decimal strings", () => {
-			expect(clampInt("3.7", 1, 10, 3)).toBe(4);
-		});
-	});
-
 	it("inputs and button are disabled when session is active", async () => {
 		const screen = await renderHome({ isSessionActive: true });
 		await expect
 			.element(screen.getByLabelText(/Duration \(minutes\)/iu))
+			.toBeDisabled();
+		await expect
+			.element(screen.getByLabelText(/Points Earned/iu))
+			.toBeDisabled();
+		await expect
+			.element(screen.getByLabelText(/Minutes Focused/iu))
 			.toBeDisabled();
 		await expect
 			.element(screen.getByRole("button", { name: /start focus session/iu }))
