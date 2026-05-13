@@ -28,13 +28,13 @@ export function meta(_: Route.MetaArgs): object[] {
 	];
 }
 
-function clampInt(
+export function clampInt(
 	value: string,
 	min: number,
 	max: number,
 	defaultValue: number,
 ): number {
-	const raw = parseInt(value, 10);
+	const raw = Math.round(parseFloat(value));
 	const val = Number.isNaN(raw) ? defaultValue : raw;
 	return Math.min(Math.max(val, min), max);
 }
