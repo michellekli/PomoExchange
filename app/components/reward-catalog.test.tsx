@@ -49,7 +49,7 @@ describe("RewardCatalog", () => {
 			.not.toBeInTheDocument();
 	});
 
-	it("dispatches REDEEM_REWARD when affordable tier is clicked", async () => {
+	it("shows confirmation modal when affordable tier is clicked", async () => {
 		const screen = await renderWithProviders(<RewardCatalog />, {
 			pointsBalance: 1,
 			pastSessions: [{ elapsedMinutes: 20, pointsEarned: 1, timestamp: 100 }],
@@ -59,8 +59,44 @@ describe("RewardCatalog", () => {
 			.first()
 			.click();
 		await expect
+			.element(
+				screen
+					.getByRole("dialog", { name: "Small Reward" })
+					.getByRole("button", { name: "Confirm" }),
+			)
+			.toBeVisible();
+	});
+
+	it("dispatches REDEEM_REWARD when Confirm is clicked in modal", async () => {
+		const screen = await renderWithProviders(<RewardCatalog />, {
+			pointsBalance: 1,
+			pastSessions: [{ elapsedMinutes: 20, pointsEarned: 1, timestamp: 100 }],
+		});
+		await screen.getByRole("button", { name: /select small reward/iu }).click();
+		const rewardDialog = screen.getByRole("dialog", { name: "Small Reward" });
+		await expect.element(rewardDialog).toBeVisible();
+		await rewardDialog.getByRole("button", { name: "Confirm" }).click();
+		await expect
 			.element(screen.getByRole("button", { name: /select small reward/iu }))
 			.not.toBeInTheDocument();
+	});
+
+	it("closes modal without dispatching when Cancel is clicked", async () => {
+		const screen = await renderWithProviders(<RewardCatalog />, {
+			pointsBalance: 1,
+			pastSessions: [{ elapsedMinutes: 20, pointsEarned: 1, timestamp: 100 }],
+		});
+		await screen.getByRole("button", { name: /select small reward/iu }).click();
+		await screen
+			.getByRole("dialog", { name: "Small Reward" })
+			.getByRole("button", { name: "Cancel" })
+			.click();
+		await expect
+			.element(screen.getByRole("dialog", { name: "Small Reward" }))
+			.not.toBeInTheDocument();
+		await expect
+			.element(screen.getByRole("button", { name: /select small reward/iu }))
+			.toBeVisible();
 	});
 
 	it("displays tier duration, cost, and suggestions", async () => {
