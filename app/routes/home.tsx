@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import PointsBalance from "~/components/points-balance";
 import PointsCelebration from "~/components/points-celebration";
@@ -27,6 +28,17 @@ export function meta(_: Route.MetaArgs): object[] {
 	];
 }
 
+function clampInt(
+	value: string,
+	min: number,
+	max: number,
+	defaultValue: number,
+): number {
+	const raw = parseInt(value, 10);
+	const val = Number.isNaN(raw) ? defaultValue : raw;
+	return Math.min(Math.max(val, min), max);
+}
+
 export default function Home(): React.ReactElement {
 	const {
 		durationMinutes,
@@ -36,6 +48,27 @@ export default function Home(): React.ReactElement {
 	} = useAppState();
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+	// Local state allows the user to type freely without clamping on every keystroke.
+	// The clamped value is dispatched only on blur.
+	const [durationInput, setDurationInput] = useState(() =>
+		durationMinutes.toString(),
+	);
+	const [numeratorInput, setNumeratorInput] = useState(() =>
+		pointsNumerator.toString(),
+	);
+	const [denominatorInput, setDenominatorInput] = useState(() =>
+		pointsDenominator.toString(),
+	);
+	// Keep local state in sync when global state changes externally (e.g. reset).
+	useEffect(() => {
+		setDurationInput(durationMinutes.toString());
+	}, [durationMinutes]);
+	useEffect(() => {
+		setNumeratorInput(pointsNumerator.toString());
+	}, [pointsNumerator]);
+	useEffect(() => {
+		setDenominatorInput(pointsDenominator.toString());
+	}, [pointsDenominator]);
 
 	return (
 		<div>
@@ -56,16 +89,24 @@ export default function Home(): React.ReactElement {
 								type="number"
 								min={SESSION.DURATION.MIN}
 								max={SESSION.DURATION.MAX}
-								value={durationMinutes}
+								value={durationInput}
 								disabled={isSessionActive}
-								onChange={(
-									e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>,
-								): void =>
+								onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+									setDurationInput(e.target.value);
+								}}
+								onBlur={(): void => {
+									const clamped = clampInt(
+										durationInput,
+										SESSION.DURATION.MIN,
+										SESSION.DURATION.MAX,
+										SESSION.DURATION.DEFAULT,
+									);
 									dispatch({
 										type: "SET_DURATION",
-										durationMinutes: parseInt(e.target.value, 10),
-									})
-								}
+										durationMinutes: clamped,
+									});
+									setDurationInput(clamped.toString());
+								}}
 							/>
 						</Field>
 					</FieldSet>
@@ -84,16 +125,24 @@ export default function Home(): React.ReactElement {
 									type="number"
 									min={POINTS_RATE.NUMERATOR.MIN}
 									max={POINTS_RATE.NUMERATOR.MAX}
-									value={pointsNumerator}
+									value={numeratorInput}
 									disabled={isSessionActive}
-									onChange={(
-										e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>,
-									): void =>
+									onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+										setNumeratorInput(e.target.value);
+									}}
+									onBlur={(): void => {
+										const clamped = clampInt(
+											numeratorInput,
+											POINTS_RATE.NUMERATOR.MIN,
+											POINTS_RATE.NUMERATOR.MAX,
+											POINTS_RATE.NUMERATOR.DEFAULT,
+										);
 										dispatch({
 											type: "SET_NUMERATOR",
-											numerator: parseInt(e.target.value, 10),
-										})
-									}
+											numerator: clamped,
+										});
+										setNumeratorInput(clamped.toString());
+									}}
 								/>
 							</Field>
 							<span className="pb-2.5 text-lg text-muted-foreground">:</span>
@@ -104,16 +153,24 @@ export default function Home(): React.ReactElement {
 									type="number"
 									min={POINTS_RATE.DENOMINATOR.MIN}
 									max={POINTS_RATE.DENOMINATOR.MAX}
-									value={pointsDenominator}
+									value={denominatorInput}
 									disabled={isSessionActive}
-									onChange={(
-										e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>,
-									): void =>
+									onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+										setDenominatorInput(e.target.value);
+									}}
+									onBlur={(): void => {
+										const clamped = clampInt(
+											denominatorInput,
+											POINTS_RATE.DENOMINATOR.MIN,
+											POINTS_RATE.DENOMINATOR.MAX,
+											POINTS_RATE.DENOMINATOR.DEFAULT,
+										);
 										dispatch({
 											type: "SET_DENOMINATOR",
-											denominator: parseInt(e.target.value, 10),
-										})
-									}
+											denominator: clamped,
+										});
+										setDenominatorInput(clamped.toString());
+									}}
 								/>
 							</Field>
 						</div>
