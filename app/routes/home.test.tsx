@@ -143,10 +143,109 @@ describe("Home Base screen", () => {
 		});
 	});
 
+	describe("Points Balance display", () => {
+		it("is hidden before first session", async () => {
+			const screen = await renderHome({
+				pastSessions: [],
+			});
+			await expect
+				.element(screen.getByText("Points Balance"))
+				.not.toBeInTheDocument();
+		});
+
+		it("is visible after first session", async () => {
+			const screen = await renderHome({
+				pointsBalance: 1.5,
+				pastSessions: [{ elapsedMinutes: 20, pointsEarned: 1, timestamp: 200 }],
+			});
+			await expect
+				.element(screen.getByLabelText("Points Balance: 1.50"))
+				.toBeVisible();
+		});
+	});
+
+	describe("Reward Catalog display", () => {
+		it("is hidden before first session", async () => {
+			const screen = await renderHome({ pastSessions: [] });
+			await expect
+				.element(screen.getByText("Reward Catalog"))
+				.not.toBeInTheDocument();
+		});
+
+		it("is visible after first session", async () => {
+			const screen = await renderHome({
+				pointsBalance: 5,
+				pastSessions: [{ elapsedMinutes: 20, pointsEarned: 1, timestamp: 200 }],
+			});
+			await expect.element(screen.getByText("Reward Catalog")).toBeVisible();
+		});
+	});
+
+	describe("Reward History Bar display", () => {
+		it("is hidden before first redemption", async () => {
+			const screen = await renderHome({ pastRedemptions: [] });
+			await expect
+				.element(screen.getByText("Reward History"))
+				.not.toBeInTheDocument();
+		});
+
+		it("is visible after first redemption", async () => {
+			const screen = await renderHome({
+				pastRedemptions: [{ tier: "small", pointsCost: 1, timestamp: 100 }],
+			});
+			await expect.element(screen.getByText("Reward History")).toBeVisible();
+		});
+
+		it("shows redemption entries", async () => {
+			const screen = await renderHome({
+				pastRedemptions: [{ tier: "small", pointsCost: 1, timestamp: 100 }],
+			});
+			await expect
+				.element(screen.getByRole("button", { name: /Small — 1 point/iu }))
+				.toBeVisible();
+		});
+	});
+
+	describe("Focus History List display", () => {
+		it("is hidden before first session", async () => {
+			const screen = await renderHome({ pastSessions: [] });
+			await expect
+				.element(screen.getByText("Focus History"))
+				.not.toBeInTheDocument();
+		});
+
+		it("is visible after first session", async () => {
+			const screen = await renderHome({
+				pointsBalance: 1,
+				pastSessions: [{ elapsedMinutes: 20, pointsEarned: 1, timestamp: 200 }],
+			});
+			await expect.element(screen.getByText("Focus History")).toBeVisible();
+		});
+
+		it("shows session entries", async () => {
+			const screen = await renderHome({
+				pointsBalance: 1,
+				pastSessions: [
+					{ elapsedMinutes: 20.5, pointsEarned: 1, timestamp: 200 },
+				],
+			});
+			await screen.getByRole("button", { name: /focus history/iu }).click();
+			await expect
+				.element(screen.getByText("20m 30s", { exact: true }))
+				.toBeVisible();
+		});
+	});
+
 	it("inputs and button are disabled when session is active", async () => {
 		const screen = await renderHome({ isSessionActive: true });
 		await expect
 			.element(screen.getByLabelText(/Duration \(minutes\)/iu))
+			.toBeDisabled();
+		await expect
+			.element(screen.getByLabelText(/Points Earned/iu))
+			.toBeDisabled();
+		await expect
+			.element(screen.getByLabelText(/Minutes Focused/iu))
 			.toBeDisabled();
 		await expect
 			.element(screen.getByRole("button", { name: /start focus session/iu }))
