@@ -32,7 +32,25 @@ describe("RewardHistoryBar", () => {
 		const trigger = screen.getByRole("button", { name: /medium/iu });
 		await trigger.hover();
 		// Advance time to account for openDelay avoiding unintentional open triggers
-		vi.advanceTimersByTime(150);
+		vi.advanceTimersByTime(120);
+		await expect.element(screen.getByText("Medium")).toBeVisible();
+		await expect.element(screen.getByText(/2 points?/iu)).toBeVisible();
+	});
+
+	it("shows tier label and points cost on click and subsequent clicks", async () => {
+		vi.useFakeTimers();
+		const screen = await renderWithProviders(<RewardHistoryBar />, {
+			pastRedemptions: [{ tier: "medium", pointsCost: 2, timestamp: 50000 }],
+		});
+		await screen.getByRole("button", { name: /medium/iu }).click();
+		// Advance time to account for openDelay avoiding unintentional open triggers
+		vi.advanceTimersByTime(120);
+		await expect.element(screen.getByText("Medium")).toBeVisible();
+		await expect.element(screen.getByText(/2 points?/iu)).toBeVisible();
+		// Verify details are still visible after multiple clicks
+		await screen.getByRole("button", { name: /medium/iu }).click();
+		// Advance time to account for openDelay avoiding unintentional open triggers
+		vi.advanceTimersByTime(120);
 		await expect.element(screen.getByText("Medium")).toBeVisible();
 		await expect.element(screen.getByText(/2 points?/iu)).toBeVisible();
 	});
