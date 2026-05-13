@@ -181,6 +181,36 @@ describe("Home Base screen", () => {
 		});
 	});
 
+	describe("Focus History List display", () => {
+		it("is hidden before first session", async () => {
+			const screen = await renderHome({ pastSessions: [] });
+			await expect
+				.element(screen.getByText("Focus History"))
+				.not.toBeInTheDocument();
+		});
+
+		it("is visible after first session", async () => {
+			const screen = await renderHome({
+				pointsBalance: 1,
+				pastSessions: [{ elapsedMinutes: 20, pointsEarned: 1, timestamp: 200 }],
+			});
+			await expect.element(screen.getByText("Focus History")).toBeVisible();
+		});
+
+		it("shows session entries", async () => {
+			const screen = await renderHome({
+				pointsBalance: 1,
+				pastSessions: [
+					{ elapsedMinutes: 20.5, pointsEarned: 1, timestamp: 200 },
+				],
+			});
+			await screen.getByRole("button", { name: /focus history/iu }).click();
+			await expect
+				.element(screen.getByText("20m 30s", { exact: true }))
+				.toBeVisible();
+		});
+	});
+
 	it("inputs and button are disabled when session is active", async () => {
 		const screen = await renderHome({ isSessionActive: true });
 		await expect
