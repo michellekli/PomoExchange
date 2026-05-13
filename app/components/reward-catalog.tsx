@@ -1,16 +1,11 @@
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { POINTS, REWARD_TIERS } from "~/state/constants";
-import { useAppState } from "~/state/provider";
+import { useAppDispatch, useAppState } from "~/state/provider";
 
-interface RewardCatalogProps {
-	onSelectTier: (tier: (typeof REWARD_TIERS)[number]) => void;
-}
-
-export default function RewardCatalog({
-	onSelectTier,
-}: RewardCatalogProps): React.ReactElement | null {
+export default function RewardCatalog(): React.ReactElement | null {
 	const { pointsBalance, pastSessions } = useAppState();
+	const dispatch = useAppDispatch();
 
 	if (pastSessions.length === 0) {
 		// Don't show if there haven't been any completed focus sessions
@@ -43,7 +38,9 @@ export default function RewardCatalog({
 									type="button"
 									size="sm"
 									className="mt-3"
-									onClick={(): void => onSelectTier(tier)}
+									onClick={(): void => {
+										dispatch({ type: "REDEEM_REWARD", tier: tier.tier });
+									}}
 									aria-label={`Select ${tier.label} reward`}
 								>
 									Select

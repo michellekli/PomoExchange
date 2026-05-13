@@ -187,6 +187,12 @@ describe("Home Base screen", () => {
 			.element(screen.getByLabelText(/Duration \(minutes\)/iu))
 			.toBeDisabled();
 		await expect
+			.element(screen.getByLabelText(/Points Earned/iu))
+			.toBeDisabled();
+		await expect
+			.element(screen.getByLabelText(/Minutes Focused/iu))
+			.toBeDisabled();
+		await expect
 			.element(screen.getByRole("button", { name: /start focus session/iu }))
 			.toBeDisabled();
 	});

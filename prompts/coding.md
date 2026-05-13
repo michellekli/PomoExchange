@@ -8,3 +8,4 @@
   - DRY: Don't Repeat Yourself
   - YAGNI: You Aren't Gonna Need It
 5. Add documentation according to prompts/document.md
+6. Do not create or update any files in app-xml/.

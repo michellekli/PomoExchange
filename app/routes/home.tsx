@@ -13,6 +13,7 @@ import {
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import WelcomeDialog from "~/components/welcome-dialog";
+import { useClampedInput } from "~/hooks/use-clamped-input";
 import { POINTS_RATE, SESSION } from "~/state/constants";
 import { useAppDispatch, useAppState } from "~/state/provider";
 import type { Route } from "./+types/home";
@@ -37,6 +38,37 @@ export default function Home(): React.ReactElement {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 
+	const [durationInput, onDurationChange, onDurationBlur] = useClampedInput({
+		globalValue: durationMinutes,
+		min: SESSION.DURATION.MIN,
+		max: SESSION.DURATION.MAX,
+		defaultValue: SESSION.DURATION.DEFAULT,
+		onCommit: (clamped: number) => {
+			dispatch({ type: "SET_DURATION", durationMinutes: clamped });
+		},
+	});
+
+	const [numeratorInput, onNumeratorChange, onNumeratorBlur] = useClampedInput({
+		globalValue: pointsNumerator,
+		min: POINTS_RATE.NUMERATOR.MIN,
+		max: POINTS_RATE.NUMERATOR.MAX,
+		defaultValue: POINTS_RATE.NUMERATOR.DEFAULT,
+		onCommit: (clamped: number) => {
+			dispatch({ type: "SET_NUMERATOR", numerator: clamped });
+		},
+	});
+
+	const [denominatorInput, onDenominatorChange, onDenominatorBlur] =
+		useClampedInput({
+			globalValue: pointsDenominator,
+			min: POINTS_RATE.DENOMINATOR.MIN,
+			max: POINTS_RATE.DENOMINATOR.MAX,
+			defaultValue: POINTS_RATE.DENOMINATOR.DEFAULT,
+			onCommit: (clamped: number) => {
+				dispatch({ type: "SET_DENOMINATOR", denominator: clamped });
+			},
+		});
+
 	return (
 		<div>
 			<WelcomeDialog />
@@ -56,16 +88,10 @@ export default function Home(): React.ReactElement {
 								type="number"
 								min={SESSION.DURATION.MIN}
 								max={SESSION.DURATION.MAX}
-								value={durationMinutes}
+								value={durationInput}
 								disabled={isSessionActive}
-								onChange={(
-									e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>,
-								): void =>
-									dispatch({
-										type: "SET_DURATION",
-										durationMinutes: parseInt(e.target.value, 10),
-									})
-								}
+								onChange={onDurationChange}
+								onBlur={onDurationBlur}
 							/>
 						</Field>
 					</FieldSet>
@@ -84,16 +110,10 @@ export default function Home(): React.ReactElement {
 									type="number"
 									min={POINTS_RATE.NUMERATOR.MIN}
 									max={POINTS_RATE.NUMERATOR.MAX}
-									value={pointsNumerator}
+									value={numeratorInput}
 									disabled={isSessionActive}
-									onChange={(
-										e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>,
-									): void =>
-										dispatch({
-											type: "SET_NUMERATOR",
-											numerator: parseInt(e.target.value, 10),
-										})
-									}
+									onChange={onNumeratorChange}
+									onBlur={onNumeratorBlur}
 								/>
 							</Field>
 							<span className="pb-2.5 text-lg text-muted-foreground">:</span>
@@ -104,16 +124,10 @@ export default function Home(): React.ReactElement {
 									type="number"
 									min={POINTS_RATE.DENOMINATOR.MIN}
 									max={POINTS_RATE.DENOMINATOR.MAX}
-									value={pointsDenominator}
+									value={denominatorInput}
 									disabled={isSessionActive}
-									onChange={(
-										e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>,
-									): void =>
-										dispatch({
-											type: "SET_DENOMINATOR",
-											denominator: parseInt(e.target.value, 10),
-										})
-									}
+									onChange={onDenominatorChange}
+									onBlur={onDenominatorBlur}
 								/>
 							</Field>
 						</div>
@@ -130,11 +144,7 @@ export default function Home(): React.ReactElement {
 					</Button>
 				</div>
 			</Card>
-			<RewardCatalog
-				onSelectTier={(): void => {
-					/* Do nothing. */
-				}}
-			/>
+			<RewardCatalog />
 		</div>
 	);
 }
