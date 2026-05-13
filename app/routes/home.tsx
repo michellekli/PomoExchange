@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router";
+import FocusHistoryList from "~/components/focus-history-list";
 import PointsBalance from "~/components/points-balance";
 import PointsCelebration from "~/components/points-celebration";
 import RewardCatalog from "~/components/reward-catalog";
@@ -145,6 +146,7 @@ export default function Home(): React.ReactElement {
 				</div>
 			</Card>
 			<RewardCatalog />
+			<FocusHistoryList />
 		</div>
 	);
 }
