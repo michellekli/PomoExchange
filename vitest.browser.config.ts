@@ -11,8 +11,8 @@ export default mergeConfig(
 			],
 			browser: {
 				viewport: {
-					width: 1024,
-					height: 768,
+					width: 390,
+					height: 844,
 				},
 			},
 		},

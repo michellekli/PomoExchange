@@ -26,7 +26,7 @@ export default function FocusHistoryList(): React.ReactElement | null {
 	}
 
 	return (
-		<Card className="p-4 m-4 lg:m-0 max-w-md mx-auto lg:max-w-none">
+		<Card className="p-4 m-4 max-w-md mx-auto">
 			<Collapsible defaultOpen={false}>
 				<CollapsibleTrigger
 					className="flex w-full items-center justify-between cursor-pointer"
