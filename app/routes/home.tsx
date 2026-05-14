@@ -42,6 +42,11 @@ export default function Home(): React.ReactElement {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 
+	// Re-direct to /timer if focus session is active.
+	// Intended to stop user from using browser back button on /timer
+	// to come back to home. If user modifies the url to come back
+	// to home, the page will be re-loaded and state lost which
+	// is out of scope for this re-direct.
 	useEffect(() => {
 		if (isSessionActive) {
 			// biome-ignore lint/nursery/noFloatingPromises: navigate returns void
