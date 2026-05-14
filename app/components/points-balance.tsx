@@ -11,7 +11,7 @@ export default function PointsBalance(): React.ReactElement | null {
 	}
 
 	return (
-		<Card className="p-4 m-4 max-w-md mx-auto">
+		<Card className="p-4 m-4 lg:m-0 max-w-md mx-auto lg:max-w-none">
 			<div className="flex items-center justify-between">
 				<span className="text-sm font-medium">Points Balance</span>
 				<Badge
