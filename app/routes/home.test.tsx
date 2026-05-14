@@ -108,6 +108,19 @@ describe("Home Base screen", () => {
 				.element(screen.getByLabelText("Time remaining"))
 				.toBeVisible();
 		});
+
+		it("navigates to /timer when session is active", async () => {
+			const screen = await renderHome(
+				{ isSessionActive: true },
+				{
+					initialEntries: ["/"],
+					routes: <Route path="timer" element={<Timer />} />,
+				},
+			);
+			await expect
+				.element(screen.getByLabelText("Time remaining"))
+				.toBeVisible();
+		});
 	});
 
 	it("shows WelcomeDialog on initial load", async () => {
