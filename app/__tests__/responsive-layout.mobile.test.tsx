@@ -26,7 +26,7 @@ describe("Responsive layout for mobile viewport", () => {
 			</div>,
 		);
 		expect(() => checkHorizontalOverflow(screen.container)).toThrow(
-			"Horizontal overflow detected",
+			/DIV scrollWidth 391px/iu,
 		);
 	});
 

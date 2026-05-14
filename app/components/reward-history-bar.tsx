@@ -9,10 +9,10 @@ import { REWARD_TIERS } from "~/state/constants";
 import { useAppState } from "~/state/provider";
 
 const tierStyles: Record<string, string> = {
-	small: "size-2 bg-amber-400 [clip-path:polygon(50%_0%,0%_100%,100%_100%)]", // triangle
-	medium: "size-2.5 bg-amber-600", // square by default
+	small: "bg-amber-400 [clip-path:polygon(50%_0%,0%_100%,100%_100%)]", // triangle
+	medium: "bg-amber-600", // square by default
 	large:
-		"size-3 bg-amber-800 [clip-path:polygon(50%_0%,100%_38%,82%_100%,18%_100%,0%_38%)]", // pentagon
+		"bg-amber-800 [clip-path:polygon(50%_0%,100%_38%,82%_100%,18%_100%,0%_38%)]", // pentagon
 };
 
 function formatTimestamp(ts: number): string {
@@ -56,11 +56,9 @@ export default function RewardHistoryBar(): React.ReactElement | null {
 						<HoverCardTrigger asChild>
 							<button
 								type="button"
-								className={`cursor-pointer ${tierStyles[r.tier] ?? "size-2 rounded-full bg-primary"}`}
+								className={`cursor-pointer  size-11 min-w-11 ${tierStyles[r.tier] ?? "rounded-full bg-primary"}`}
 								aria-label={`${tierLabel(r.tier)} — ${r.pointsCost} point${r.pointsCost === 1 ? "" : "s"}`}
 								onClick={(): void =>
-									// Toggle controlled state so card opens on every click
-									// If card hasn't been opened yet, set as open
 									setOpenCards((prev) => ({
 										...prev,
 										[r.timestamp]: !(prev[r.timestamp] ?? false),
