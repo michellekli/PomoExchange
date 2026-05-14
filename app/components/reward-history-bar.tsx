@@ -38,7 +38,7 @@ export default function RewardHistoryBar(): React.ReactElement | null {
 		REWARD_TIERS.find((t) => t.tier === tier)?.label ?? tier;
 
 	return (
-		<Card className="p-4 m-4 max-w-md mx-auto">
+		<Card className="p-4 m-4 lg:m-0 max-w-md mx-auto lg:max-w-none">
 			<h2 className="text-sm font-medium mb-3">Reward History</h2>
 			<div className="flex items-end gap-2">
 				{pastRedemptions.map((r) => (
