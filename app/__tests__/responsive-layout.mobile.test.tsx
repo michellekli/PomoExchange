@@ -3,12 +3,20 @@
 import { Route, Routes } from "react-router";
 import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
-import {
-	checkHorizontalOverflow,
-	renderWithProviders,
-} from "~/__tests__/test-utils";
+import { renderWithProviders } from "~/__tests__/test-utils";
 import Home from "~/routes/home";
 import Timer from "~/routes/timer";
+
+function checkHorizontalOverflow(container: HTMLElement): void {
+	// Check evey element for horizontal overflow.
+	// Takes less than 1 second to run all tests, but
+	// may not be a good idea if the app gets bigger.
+	container.querySelectorAll("*").forEach((x) => {
+		if (x.scrollWidth > x.clientWidth) {
+			throw new Error("Horizontal overflow detected");
+		}
+	});
+}
 
 describe("Responsive layout for mobile viewport", () => {
 	it("errors on overflow", async () => {

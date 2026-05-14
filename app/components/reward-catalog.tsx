@@ -19,7 +19,7 @@ export default function RewardCatalog(): React.ReactElement | null {
 
 	return (
 		<>
-			<div className="space-y-3 m-4 lg:m-0 max-w-md mx-auto lg:max-w-none">
+			<div className="space-y-3 m-4 max-w-md mx-auto">
 				<h2 className="text-sm font-medium">Reward Catalog</h2>
 				{REWARD_TIERS.map((tier) => {
 					const affordable = pointsBalance >= tier.cost;
