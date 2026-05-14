@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import FocusHistoryList from "~/components/focus-history-list";
 import PointsBalance from "~/components/points-balance";
@@ -40,6 +41,13 @@ export default function Home(): React.ReactElement {
 	} = useAppState();
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+
+	useEffect(() => {
+		if (isSessionActive) {
+			// biome-ignore lint/nursery/noFloatingPromises: navigate returns void
+			navigate("/timer");
+		}
+	}, [isSessionActive, navigate]);
 
 	const [durationInput, onDurationChange, onDurationBlur] = useClampedInput({
 		globalValue: durationMinutes,
@@ -139,9 +147,8 @@ export default function Home(): React.ReactElement {
 					<Button
 						type="button"
 						disabled={isSessionActive}
-						onClick={async (): Promise<void> => {
+						onClick={(): void => {
 							dispatch({ type: "START_SESSION" });
-							await navigate("/timer");
 						}}
 					>
 						Start Focus Session
