@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router";
 import { describe, expect, it } from "vitest";
 import type { RenderResult } from "vitest-browser-react";
 import { renderWithProviders } from "~/__tests__/test-utils";
+import { POINTS } from "~/state/constants";
 import type { AppState } from "~/state/types";
 import Home from "./home";
 import Timer from "./timer";
@@ -107,6 +108,19 @@ describe("Home Base screen", () => {
 				.element(screen.getByLabelText("Time remaining"))
 				.toBeVisible();
 		});
+
+		it("navigates to /timer when session is active", async () => {
+			const screen = await renderHome(
+				{ isSessionActive: true },
+				{
+					initialEntries: ["/"],
+					routes: <Route path="timer" element={<Timer />} />,
+				},
+			);
+			await expect
+				.element(screen.getByLabelText("Time remaining"))
+				.toBeVisible();
+		});
 	});
 
 	it("shows WelcomeDialog on initial load", async () => {
@@ -160,6 +174,26 @@ describe("Home Base screen", () => {
 			});
 			await expect
 				.element(screen.getByLabelText("Points Balance: 1.50"))
+				.toBeVisible();
+		});
+	});
+
+	describe("Points Cap Warning display", () => {
+		it("is hidden below point cap", async () => {
+			const screen = await renderHome({
+				pointsBalance: POINTS.CAP - 1,
+			});
+			await expect
+				.element(screen.getByText("Points Cap Reached"))
+				.not.toBeInTheDocument();
+		});
+
+		it("is visible at point cap", async () => {
+			const screen = await renderHome({
+				pointsBalance: POINTS.CAP,
+			});
+			await expect
+				.element(screen.getByText("Points Cap Reached"))
 				.toBeVisible();
 		});
 	});

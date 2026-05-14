@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import FocusHistoryList from "~/components/focus-history-list";
 import PointsBalance from "~/components/points-balance";
+import PointsCapWarning from "~/components/points-cap-warning";
 import PointsCelebration from "~/components/points-celebration";
 import RewardCatalog from "~/components/reward-catalog";
 import RewardHistoryBar from "~/components/reward-history-bar";
@@ -39,6 +41,18 @@ export default function Home(): React.ReactElement {
 	} = useAppState();
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+
+	// Re-direct to /timer if focus session is active.
+	// Intended to stop user from using browser back button on /timer
+	// to come back to home. If user modifies the url to come back
+	// to home, the page will be re-loaded and state lost which
+	// is out of scope for this re-direct.
+	useEffect(() => {
+		if (isSessionActive) {
+			// biome-ignore lint/nursery/noFloatingPromises: navigate returns void
+			navigate("/timer");
+		}
+	}, [isSessionActive, navigate]);
 
 	const [durationInput, onDurationChange, onDurationBlur] = useClampedInput({
 		globalValue: durationMinutes,
@@ -134,12 +148,12 @@ export default function Home(): React.ReactElement {
 							</Field>
 						</div>
 					</FieldSet>
+					<PointsCapWarning />
 					<Button
 						type="button"
 						disabled={isSessionActive}
-						onClick={async (): Promise<void> => {
+						onClick={(): void => {
 							dispatch({ type: "START_SESSION" });
-							await navigate("/timer");
 						}}
 					>
 						Start Focus Session
