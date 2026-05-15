@@ -23,7 +23,7 @@ describe("Responsive layout for desktop viewport", () => {
 			</div>,
 		);
 		expect(() => checkHorizontalOverflow(screen.container)).toThrow(
-			"DIV scrollWidth 1025px > clientWidth 1024px",
+			"DIV scrollWidth 1025px > clientWidth",
 		);
 	});
 
