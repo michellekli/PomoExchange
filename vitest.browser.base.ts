@@ -9,6 +9,7 @@ export default defineConfig({
 		tsconfigPaths: true,
 	},
 	test: {
+		exclude: ["**/__screenshots__/**/*", ".vitest-attachments/*"],
 		setupFiles: ["./vitest.browser.setup.ts"],
 		browser: {
 			enabled: true,
