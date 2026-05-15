@@ -17,12 +17,17 @@ export default defineConfig({
 			// https://vitest.dev/config/browser/playwright
 			instances: [
 				{ browser: "chromium" },
-				{ browser: "firefox" },
-				{ browser: "webkit" },
+				// Remove firefox and webkit because not supported by v8 and
+				// want to use v8 for coverage instead of istanbul because
+				// test results can differ between the two providers.
+				// v8 (v3.2.0 +) is faster to run than istanbul and has
+				// identical coverage reports to istanbul.
+				// { browser: "firefox" },
+				// { browser: "webkit" },
 			],
 		},
 		coverage: {
-			provider: "istanbul",
+			provider: "v8",
 			reportsDirectory: "coverage/browser",
 		},
 	},

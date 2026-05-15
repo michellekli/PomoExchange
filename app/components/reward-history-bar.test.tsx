@@ -24,22 +24,16 @@ describe("RewardHistoryBar", () => {
 		await expect.element(screen.getByText("Reward History")).toBeVisible();
 	});
 
-	// Removed: testing the hover interaction is too flaky
-	// it.skipIf(!!process.env.CI)(
-	// 	"shows tier label and points cost on hover",
-	// 	async () => {
-	// 		vi.useFakeTimers();
-	// 		const screen = await renderWithProviders(<RewardHistoryBar />, {
-	// 			pastRedemptions: [{ tier: "medium", pointsCost: 2, timestamp: 50000 }],
-	// 		});
-	// 		const trigger = screen.getByRole("button", { name: /medium/iu });
-	// 		await trigger.hover();
-	// 		// Advance time to account for openDelay avoiding unintentional open triggers
-	// 		vi.advanceTimersByTime(120);
-	// 		await expect.element(screen.getByText("Medium")).toBeVisible();
-	// 		await expect.element(screen.getByText(/2 points?/iu)).toBeVisible();
-	// 	},
-	// );
+	it("shows tier label and points cost on hover", async () => {
+		const screen = await renderWithProviders(<RewardHistoryBar />, {
+			pastRedemptions: [{ tier: "medium", pointsCost: 2, timestamp: 50000 }],
+		});
+		const trigger = screen.getByRole("button", { name: /medium/iu });
+		await trigger.hover();
+
+		await expect.element(screen.getByText("Medium")).toBeVisible();
+		await expect.element(screen.getByText(/2 points?/iu)).toBeVisible();
+	});
 
 	it("shows tier label and points cost on click and subsequent clicks", async () => {
 		vi.useFakeTimers();
