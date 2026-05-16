@@ -5,14 +5,11 @@ export default mergeConfig(
 	viteConfig,
 	defineConfig({
 		test: {
-			include: [
-				"app/**/*.test.tsx",
-				"!app/**/*.mobile.test.tsx", // exclude mobile viewport tests
-			],
+			include: ["app/**/*.mobile.test.tsx"],
 			browser: {
 				viewport: {
-					width: 1024,
-					height: 768,
+					width: 390,
+					height: 844,
 				},
 			},
 		},

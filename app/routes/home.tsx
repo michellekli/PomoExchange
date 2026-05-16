@@ -38,6 +38,7 @@ export default function Home(): React.ReactElement {
 		pointsNumerator,
 		pointsDenominator,
 		isSessionActive,
+		pastSessions,
 	} = useAppState();
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
@@ -85,84 +86,98 @@ export default function Home(): React.ReactElement {
 			},
 		});
 
+	const hasSessions = pastSessions.length > 0;
+
 	return (
 		<div>
 			<WelcomeDialog />
 			<PointsCelebration />
-			<PointsBalance />
-			<Card className="p-6 m-4 max-w-md mx-auto">
-				<div className="space-y-4">
-					<FieldSet>
-						<FieldLegend>Session Duration</FieldLegend>
-						<FieldDescription>
-							Set the length of your focus session.
-						</FieldDescription>
-						<Field>
-							<FieldLabel htmlFor="duration">Duration (minutes)</FieldLabel>
-							<Input
-								id="duration"
-								type="number"
-								min={SESSION.DURATION.MIN}
-								max={SESSION.DURATION.MAX}
-								value={durationInput}
+			<div
+				className={`lg:grid ${hasSessions ? "lg:grid-cols-2" : "lg:grid-cols-1"} lg:gap-6 lg:p-6 lg:items-start`}
+			>
+				<div className="lg:space-y-6">
+					<PointsBalance />
+					<Card className="p-6 m-4 lg:m-0 max-w-md mx-auto lg:max-w-none">
+						<div className="space-y-4">
+							<FieldSet>
+								<FieldLegend>Session Duration</FieldLegend>
+								<FieldDescription>
+									Set the length of your focus session.
+								</FieldDescription>
+								<Field>
+									<FieldLabel htmlFor="duration">Duration (minutes)</FieldLabel>
+									<Input
+										id="duration"
+										type="number"
+										min={SESSION.DURATION.MIN}
+										max={SESSION.DURATION.MAX}
+										value={durationInput}
+										disabled={isSessionActive}
+										onChange={onDurationChange}
+										onBlur={onDurationBlur}
+									/>
+								</Field>
+							</FieldSet>
+							<FieldSet>
+								<FieldLegend>Earning Rate</FieldLegend>
+								<FieldDescription>
+									{pointsNumerator} {pointsNumerator === 1 ? "point" : "points"}{" "}
+									earned every {pointsDenominator}{" "}
+									{pointsDenominator === 1 ? "minute" : "minutes"}.
+								</FieldDescription>
+								<div className="flex items-end gap-3">
+									<Field className="flex-1">
+										<FieldLabel htmlFor="numerator">Points Earned</FieldLabel>
+										<Input
+											id="numerator"
+											type="number"
+											min={POINTS_RATE.NUMERATOR.MIN}
+											max={POINTS_RATE.NUMERATOR.MAX}
+											value={numeratorInput}
+											disabled={isSessionActive}
+											onChange={onNumeratorChange}
+											onBlur={onNumeratorBlur}
+										/>
+									</Field>
+									<span className="pb-2.5 text-lg text-muted-foreground">
+										:
+									</span>
+									<Field className="flex-1">
+										<FieldLabel htmlFor="denominator">
+											Minutes Focused
+										</FieldLabel>
+										<Input
+											id="denominator"
+											type="number"
+											min={POINTS_RATE.DENOMINATOR.MIN}
+											max={POINTS_RATE.DENOMINATOR.MAX}
+											value={denominatorInput}
+											disabled={isSessionActive}
+											onChange={onDenominatorChange}
+											onBlur={onDenominatorBlur}
+										/>
+									</Field>
+								</div>
+							</FieldSet>
+							<PointsCapWarning />
+							<Button
+								type="button"
 								disabled={isSessionActive}
-								onChange={onDurationChange}
-								onBlur={onDurationBlur}
-							/>
-						</Field>
-					</FieldSet>
-					<FieldSet>
-						<FieldLegend>Earning Rate</FieldLegend>
-						<FieldDescription>
-							{pointsNumerator} {pointsNumerator === 1 ? "point" : "points"}{" "}
-							earned every {pointsDenominator}{" "}
-							{pointsDenominator === 1 ? "minute" : "minutes"}.
-						</FieldDescription>
-						<div className="flex items-end gap-3">
-							<Field className="flex-1">
-								<FieldLabel htmlFor="numerator">Points Earned</FieldLabel>
-								<Input
-									id="numerator"
-									type="number"
-									min={POINTS_RATE.NUMERATOR.MIN}
-									max={POINTS_RATE.NUMERATOR.MAX}
-									value={numeratorInput}
-									disabled={isSessionActive}
-									onChange={onNumeratorChange}
-									onBlur={onNumeratorBlur}
-								/>
-							</Field>
-							<span className="pb-2.5 text-lg text-muted-foreground">:</span>
-							<Field className="flex-1">
-								<FieldLabel htmlFor="denominator">Minutes Focused</FieldLabel>
-								<Input
-									id="denominator"
-									type="number"
-									min={POINTS_RATE.DENOMINATOR.MIN}
-									max={POINTS_RATE.DENOMINATOR.MAX}
-									value={denominatorInput}
-									disabled={isSessionActive}
-									onChange={onDenominatorChange}
-									onBlur={onDenominatorBlur}
-								/>
-							</Field>
+								onClick={(): void => {
+									dispatch({ type: "START_SESSION" });
+								}}
+							>
+								Start Focus Session
+							</Button>
 						</div>
-					</FieldSet>
-					<PointsCapWarning />
-					<Button
-						type="button"
-						disabled={isSessionActive}
-						onClick={(): void => {
-							dispatch({ type: "START_SESSION" });
-						}}
-					>
-						Start Focus Session
-					</Button>
+					</Card>
 				</div>
-			</Card>
-			<RewardCatalog />
-			<RewardHistoryBar />
-			<FocusHistoryList />
+				<div className="lg:space-y-6">
+					<RewardCatalog />
+					<RewardHistoryBar />
+					<FocusHistoryList />
+				</div>
+			</div>
 		</div>
 	);
 }

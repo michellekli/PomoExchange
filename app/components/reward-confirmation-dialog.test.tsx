@@ -6,6 +6,7 @@ import RewardConfirmationDialog from "./reward-confirmation-dialog";
 
 describe("RewardConfirmationDialog", () => {
 	const smallTier = REWARD_TIERS[0];
+	const mediumTier = REWARD_TIERS[1];
 
 	it("is hidden when open is false", async () => {
 		const screen = await render(
@@ -70,5 +71,38 @@ describe("RewardConfirmationDialog", () => {
 			.getByRole("button", { name: "Cancel" })
 			.click();
 		expect(onCancel).toHaveBeenCalledTimes(1);
+	});
+
+	it("renders points (plural) when cost > 1", async () => {
+		const screen = await render(
+			<RewardConfirmationDialog
+				tier={mediumTier}
+				open={true}
+				onConfirm={vi.fn()}
+				onCancel={vi.fn()}
+			/>,
+		);
+		const rewardDialog = screen.getByRole("dialog", {
+			name: mediumTier.label,
+		});
+		await expect
+			.element(rewardDialog.getByText(/10 min — 2 points/iu))
+			.toBeVisible();
+	});
+	it("does not render the default close button", async () => {
+		const screen = await render(
+			<RewardConfirmationDialog
+				tier={smallTier}
+				open={true}
+				onConfirm={vi.fn()}
+				onCancel={vi.fn()}
+			/>,
+		);
+		const rewardDialog = screen.getByRole("dialog", {
+			name: smallTier.label,
+		});
+		await expect
+			.element(rewardDialog.getByRole("button", { name: "Close" }))
+			.not.toBeInTheDocument();
 	});
 });

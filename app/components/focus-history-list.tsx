@@ -26,10 +26,10 @@ export default function FocusHistoryList(): React.ReactElement | null {
 	}
 
 	return (
-		<Card className="p-4 m-4 max-w-md mx-auto">
+		<Card className="p-4 m-4 lg:m-0 max-w-md mx-auto lg:max-w-none">
 			<Collapsible defaultOpen={false}>
 				<CollapsibleTrigger
-					className="flex w-full items-center justify-between cursor-pointer"
+					className="flex w-full min-h-11 items-center justify-between cursor-pointer"
 					aria-label={`Focus History, ${pastSessions.length} session${pastSessions.length === 1 ? "" : "s"}`}
 				>
 					<span className="text-sm font-medium">Focus History</span>
