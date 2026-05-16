@@ -18,4 +18,10 @@ describe("PointsCapWarning", () => {
 		});
 		expect(screen.getByText(/Points Cap Reached/iu)).toBeInTheDocument();
 	});
+	it("renders when above cap", async () => {
+		const screen = await renderWithProviders(<PointsCapWarning />, {
+			pointsBalance: POINTS.CAP + 1,
+		});
+		expect(screen.getByText(/Points Cap Reached/iu)).toBeInTheDocument();
+	});
 });
