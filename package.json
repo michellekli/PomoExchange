@@ -15,7 +15,7 @@
 		"test:browser:mobile:headless": "vitest --browser.headless --config=vitest.browser.mobile.config.ts",
 		"test:browser:run": "vitest run --browser.headless --config=vitest.browser.config.ts && vitest run --browser.headless --config=vitest.browser.mobile.config.ts",
 		"test:all": "npm run test:run && npm run test:browser:run",
-		"test:all:coverage": "vitest run --config=vitest.unit.config.ts --coverage && vitest run --config=vitest.browser.config.ts --coverage && vitest run --config=vitest.browser.mobile.config.ts --coverage",
+		"test:all:coverage": "vitest run --browser.headless --config=vitest.unit.config.ts --coverage && vitest run --browser.headless --config=vitest.browser.config.ts --coverage && vitest run --browser.headless --config=vitest.browser.mobile.config.ts --coverage",
 		"prepare": "husky",
 		"check": "biome check --write",
 		"generate:xml": "npx tsx __genxml__/ts-source-to-xml.ts --all --out app-xml"
